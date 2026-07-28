@@ -28,6 +28,7 @@ def default_document() -> dict:
                 {
                     "name": "고유진",
                     "role": "",
+                    "roleVisible": True,
                     "email": "hello@example.com",
                     "phone": "010-0000-0000",
                     "location": "서울, 대한민국",

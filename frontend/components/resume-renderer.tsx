@@ -1,12 +1,12 @@
 import {
   BriefcaseBusiness,
-  GraduationCap,
   Link as LinkIcon,
   Mail,
   MapPin,
   Phone,
   Sparkles,
 } from "lucide-react";
+import { FaGithub } from "react-icons/fa";
 import type { ResumeBlock, ResumeDocument, TiptapDocument } from "../lib/types";
 import { paginateBlocks } from "../lib/blocks";
 import { RichTextView } from "./rich-text-view";
@@ -45,28 +45,30 @@ function ProjectItems({ entries }: { entries: Item[] }) {
 
         return (
           <article className="project-item" key={text(entry.id) || String(index)}>
-            <aside className="project-meta">
-              {text(entry.period) && <time>{text(entry.period)}</time>}
-              {text(entry.role) && <strong>{text(entry.role)}</strong>}
-              {text(entry.stack) && <span>{text(entry.stack)}</span>}
-              <div className="project-evidence-links">
-                {projectUrl && (
-                  <a href={projectUrl} target="_blank" rel="noreferrer">
-                    프로젝트 상세
-                  </a>
-                )}
-                {evidenceUrl && (
-                  <a href={evidenceUrl} target="_blank" rel="noreferrer">
-                    코드·PR 증거
-                  </a>
-                )}
-              </div>
-            </aside>
-            <div className="project-copy">
+            <div className="project-heading">
               {text(entry.name) && <h3>{text(entry.name)}</h3>}
               {text(entry.description) && (
                 <p className="resume-description">{text(entry.description)}</p>
               )}
+            </div>
+            <div className="project-body">
+              <aside className="project-meta">
+                {text(entry.period) && <time>{text(entry.period)}</time>}
+                {text(entry.role) && <strong>{text(entry.role)}</strong>}
+                {text(entry.stack) && <span>{text(entry.stack)}</span>}
+                <div className="project-evidence-links">
+                  {projectUrl && (
+                    <a href={projectUrl} target="_blank" rel="noreferrer">
+                      프로젝트 상세
+                    </a>
+                  )}
+                  {evidenceUrl && (
+                    <a href={evidenceUrl} target="_blank" rel="noreferrer">
+                      코드·PR 증거
+                    </a>
+                  )}
+                </div>
+              </aside>
               {achievements.length > 0 && (
                 <ul>
                   {achievements.map((achievement, achievementIndex) => (
@@ -106,17 +108,16 @@ function CredentialItems({
           : [text(entry.major), text(entry.degree)].filter(Boolean);
 
         return (
-          <article className="credential-item" key={text(entry.id) || String(index)}>
-            <div className={`credential-image ${image ? "has-image" : ""}`}>
-              {image ? (
-                // eslint-disable-next-line @next/next/no-img-element
+          <article
+            className={`credential-item ${image ? "has-image" : ""}`}
+            key={text(entry.id) || String(index)}
+          >
+            {image && (
+              <div className="credential-image has-image">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={image} alt={`${primary || (experience ? "회사" : "학교")} 로고 또는 사진`} />
-              ) : experience ? (
-                <BriefcaseBusiness size={20} />
-              ) : (
-                <GraduationCap size={21} />
-              )}
-            </div>
+              </div>
+            )}
             <div className="credential-main">
               {primary && <h3>{primary}</h3>}
               {meta.length > 0 && (
@@ -147,7 +148,8 @@ function ResumeBlockView({ block }: { block: ResumeBlock }) {
   if (block.type === "divider") return <hr className="resume-divider" />;
 
   if (block.type === "profile") {
-    const role = text(data.role);
+    const roleVisible = typeof data.roleVisible === "boolean" ? data.roleVisible : true;
+    const role = roleVisible ? text(data.role) : "";
     const name = text(data.name);
     const profileImage = imageDataUrl(data);
     const contacts = [
@@ -287,10 +289,12 @@ function ResumeBlockView({ block }: { block: ResumeBlock }) {
         <div className={`link-list link-list-${display}`}>
           {items(data).map((entry, index) => {
             const url = text(entry.url);
+            const label = text(entry.label) || url;
+            const LinkGlyph = /github(?:\.com)?/i.test(`${label} ${url}`) ? FaGithub : LinkIcon;
             const content = (
               <>
-                <LinkIcon size={14} />
-                <span>{text(entry.label) || url}</span>
+                <LinkGlyph size={14} aria-hidden="true" />
+                <span>{label}</span>
                 {url && <small>{url}</small>}
               </>
             );
@@ -352,12 +356,12 @@ export function ResumeRenderer({
   mode?: "preview" | "public" | "print";
 }) {
   const blocks = [...document.blocks].sort((a, b) => a.order - b.order);
-  const isTwoPageTemplate = document.template === "resume-two-page";
-  const pages = isTwoPageTemplate ? paginateBlocks(blocks) : [];
+  const isPrintTemplate = document.template !== "resume-web";
+  const pages = isPrintTemplate ? paginateBlocks(blocks) : [];
   const renderBlock = (block: ResumeBlock, ignoreBreak = false) => (
     <div
       key={block.id}
-      className={`resume-block resume-block-${block.width} ${!ignoreBreak && block.print.breakBefore ? "has-page-break" : ""}`}
+      className={`resume-block resume-block-${block.width} resume-block-${block.type} ${!ignoreBreak && block.print.breakBefore ? "has-page-break" : ""}`}
       style={{ breakBefore: !ignoreBreak && block.print.breakBefore ? "page" : "auto" }}
       data-break-before={!ignoreBreak && block.print.breakBefore ? "true" : "false"}
     >
@@ -367,7 +371,7 @@ export function ResumeRenderer({
 
   return (
     <article
-      className={`resume-paper resume-paper-${mode} density-${document.theme.density} template-${document.template ?? "resume-one-page"}`}
+      className={`resume-paper resume-paper-${mode} density-${document.theme.density} template-${document.template ?? "resume-one-page"} ${isPrintTemplate ? "resume-paper-paged" : "resume-paper-flow"}`}
       style={
         {
           "--resume-accent": document.theme.accentColor,
@@ -376,10 +380,14 @@ export function ResumeRenderer({
       }
       data-render-ready="true"
     >
-      {isTwoPageTemplate ? (
+      {isPrintTemplate ? (
         <div className="resume-pages">
           {pages.map((pageBlocks, pageIndex) => (
-            <div className="resume-page" key={pageBlocks[0]?.id ?? `page-${pageIndex}`}>
+            <div
+              className="resume-page"
+              key={pageBlocks[0]?.id ?? `page-${pageIndex}`}
+              aria-label={`A4 ${pageIndex + 1}페이지`}
+            >
               <div className="resume-grid">
                 {pageBlocks.map((resumeBlock) => renderBlock(resumeBlock, true))}
               </div>

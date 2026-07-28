@@ -10,6 +10,7 @@ export type TemplateOption = {
   id: TemplateId;
   title: string;
   defaultTitle: string;
+  surface: "print" | "web";
 };
 
 export const templateOptions: TemplateOption[] = [
@@ -17,26 +18,31 @@ export const templateOptions: TemplateOption[] = [
     id: "resume-one-page",
     title: "1장 이력서",
     defaultTitle: "1장 이력서",
+    surface: "print",
   },
   {
     id: "resume-two-page",
     title: "2장 이력서",
     defaultTitle: "2장 이력서",
+    surface: "print",
   },
   {
     id: "resume-web",
     title: "웹용 긴 이력서",
     defaultTitle: "웹용 긴 이력서",
+    surface: "web",
   },
   {
     id: "portfolio",
     title: "기술 포트폴리오",
     defaultTitle: "기술 포트폴리오",
+    surface: "print",
   },
   {
     id: "cover-letter",
     title: "자기소개서",
     defaultTitle: "자기소개서",
+    surface: "print",
   },
 ];
 
@@ -60,6 +66,7 @@ const profile = (order: number, role: string) =>
   block("profile", order, {
     name: "이름",
     role,
+    roleVisible: true,
     email: "name@example.com",
     phone: "010-0000-0000",
     location: "서울, 대한민국",

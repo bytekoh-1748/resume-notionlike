@@ -47,7 +47,6 @@ import { blockLabels, createBlock, normalizeOrder, paginateBlocks } from "../lib
 import { useEditorStore } from "../lib/editor-store";
 import type { BlockType, ResumeBlock, ResumeDocument, SaveState } from "../lib/types";
 import { BlockEditor } from "./block-editor";
-import { ResumeRenderer } from "./resume-renderer";
 
 function SortableBlock({
   block,
@@ -72,9 +71,9 @@ function SortableBlock({
   return (
     <section
       ref={setNodeRef}
-      className={`editable-block editable-block-${block.width} ${block.print.breakBefore ? "page-break-block" : ""} ${isDragging ? "dragging" : ""}`}
+      className={`editable-block editable-block-${block.width} editable-block-${block.type} ${block.print.breakBefore ? "page-break-block" : ""} ${isDragging ? "dragging" : ""}`}
       style={{
-        transform: CSS.Transform.toString(transform),
+        transform: CSS.Translate.toString(transform),
         transition,
         breakBefore: block.print.breakBefore ? "page" : "auto",
       }}
@@ -346,9 +345,10 @@ export function EditorPage() {
     () => (document ? [...document.blocks].sort((a, b) => a.order - b.order) : []),
     [document],
   );
+  const isPrintTemplate = document ? document.template !== "resume-web" : false;
   const editablePages = useMemo(
-    () => (document?.template === "resume-two-page" ? paginateBlocks(orderedBlocks) : []),
-    [document?.template, orderedBlocks],
+    () => (isPrintTemplate ? paginateBlocks(orderedBlocks) : []),
+    [isPrintTemplate, orderedBlocks],
   );
 
   if (loading) return <div className="full-page-message">문서를 준비하는 중입니다…</div>;
@@ -377,6 +377,14 @@ export function EditorPage() {
           <button className="icon-button" type="button" onClick={redo} disabled={!future.length} aria-label="다시 실행">
             <Redo2 size={17} />
           </button>
+          <Link
+            className="secondary-button"
+            href={`/preview/${resume.id}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <Eye size={16} /> 미리보기
+          </Link>
           {resume.published_at && (
             <Link className="secondary-button" href={`/r/${resume.slug}`} target="_blank">
               <Eye size={16} /> 공개본
@@ -446,7 +454,9 @@ export function EditorPage() {
         </aside>
       )}
 
-      <div className="editor-workspace">
+      <div
+        className={`editor-workspace document-surface-${isPrintTemplate ? "print" : "web"}`}
+      >
         {error && (
           <div className="editor-error">
             {error}
@@ -456,10 +466,10 @@ export function EditorPage() {
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
           <SortableContext items={orderedBlocks.map((block) => block.id)} strategy={rectSortingStrategy}>
             <div
-              className={`editable-canvas density-${document.theme.density} template-${document.template} ${document.template === "resume-two-page" ? "editable-canvas-paged" : ""}`}
+              className={`editable-canvas density-${document.theme.density} template-${document.template} ${isPrintTemplate ? "editable-canvas-paged" : "editable-canvas-flow"}`}
               style={{ "--resume-accent": document.theme.accentColor } as React.CSSProperties}
             >
-              {(document.template === "resume-two-page" ? editablePages : [orderedBlocks]).map(
+              {(isPrintTemplate ? editablePages : [orderedBlocks]).map(
                 (pageBlocks, pageIndex) => {
                   const content = pageBlocks.map((block) => (
                     <SortableBlock
@@ -484,10 +494,11 @@ export function EditorPage() {
                     />
                   ));
 
-                  return document.template === "resume-two-page" ? (
+                  return isPrintTemplate ? (
                     <div
                       className="editable-page"
                       key={pageBlocks[0]?.id ?? `page-${pageIndex}`}
+                      aria-label={`A4 ${pageIndex + 1}페이지`}
                     >
                       {content}
                     </div>
@@ -499,10 +510,6 @@ export function EditorPage() {
             </div>
           </SortableContext>
         </DndContext>
-        <details className="preview-drawer">
-          <summary>읽기 전용 미리보기</summary>
-          <ResumeRenderer document={document} mode="preview" />
-        </details>
       </div>
 
       {deleted && (

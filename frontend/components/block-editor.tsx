@@ -262,6 +262,7 @@ export function BlockEditor({
     const visibleContacts = contactFields.filter((contact) => isContactVisible(contact.key));
     const hiddenContacts = contactFields.filter((contact) => !isContactVisible(contact.key));
     const profileImage = value(data, "imageDataUrl");
+    const roleVisible = typeof data.roleVisible === "boolean" ? data.roleVisible : true;
 
     return (
       <div className="profile-editor">
@@ -321,13 +322,33 @@ export function BlockEditor({
               placeholder="이름"
               aria-label="이름"
             />
-            <input
-              className="profile-role-input"
-              value={value(data, "role")}
-              onChange={(event) => onData({ ...data, role: event.target.value })}
-              placeholder="한 줄 직무 소개"
-              aria-label="직무"
-            />
+            {roleVisible ? (
+              <div className="profile-role-editor-row">
+                <input
+                  className="profile-role-input"
+                  value={value(data, "role")}
+                  onChange={(event) => onData({ ...data, role: event.target.value })}
+                  placeholder="한 줄 직무 소개"
+                  aria-label="한 줄 직무 소개"
+                />
+                <button
+                  type="button"
+                  className="profile-role-remove"
+                  onClick={() => onData({ ...data, role: "", roleVisible: false })}
+                  aria-label="한 줄 직무 소개 제거"
+                >
+                  <X size={13} />
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="profile-role-add"
+                onClick={() => onData({ ...data, roleVisible: true })}
+              >
+                <Plus size={13} /> 한 줄 직무 소개 추가
+              </button>
+            )}
             {imageErrors.profile && (
               <p className="item-image-error" role="alert">
                 {imageErrors.profile}

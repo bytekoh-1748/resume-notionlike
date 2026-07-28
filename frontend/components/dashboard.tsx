@@ -37,6 +37,7 @@ export function Dashboard() {
   const [error, setError] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [templateOpen, setTemplateOpen] = useState(false);
+  const [templateSurface, setTemplateSurface] = useState<"print" | "web">("print");
   const [selectedTemplate, setSelectedTemplate] =
     useState<TemplateId>("resume-two-page");
   const [newTitle, setNewTitle] = useState("2장 이력서");
@@ -83,9 +84,17 @@ export function Dashboard() {
   const active = resumes.filter((resume) => (showTrash ? resume.deleted_at : !resume.deleted_at));
 
   const openTemplatePicker = () => {
+    setTemplateSurface("print");
     setSelectedTemplate("resume-two-page");
     setNewTitle(getTemplateOption("resume-two-page").defaultTitle);
     setTemplateOpen(true);
+  };
+
+  const chooseTemplateSurface = (surface: "print" | "web") => {
+    const template = surface === "print" ? "resume-two-page" : "resume-web";
+    setTemplateSurface(surface);
+    setSelectedTemplate(template);
+    setNewTitle(getTemplateOption(template).defaultTitle);
   };
 
   const chooseTemplate = (template: TemplateId) => {
@@ -258,8 +267,33 @@ export function Dashboard() {
               </button>
             </header>
 
-            <div className="template-grid" role="radiogroup" aria-label="문서 템플릿">
-              {templateOptions.map((option) => {
+            <div className="template-surface-tabs" role="tablist" aria-label="문서 형식">
+              <button
+                className={templateSurface === "print" ? "active" : ""}
+                type="button"
+                role="tab"
+                aria-selected={templateSurface === "print"}
+                onClick={() => chooseTemplateSurface("print")}
+              >
+                인쇄용 A4
+              </button>
+              <button
+                className={templateSurface === "web" ? "active" : ""}
+                type="button"
+                role="tab"
+                aria-selected={templateSurface === "web"}
+                onClick={() => chooseTemplateSurface("web")}
+              >
+                웹용
+              </button>
+            </div>
+
+            <div
+              className={`template-grid template-grid-${templateSurface}`}
+              role="radiogroup"
+              aria-label={`${templateSurface === "print" ? "인쇄용 A4" : "웹용"} 문서 템플릿`}
+            >
+              {templateOptions.filter((option) => option.surface === templateSurface).map((option) => {
                 const selected = option.id === selectedTemplate;
                 return (
                   <button

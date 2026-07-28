@@ -33,6 +33,7 @@ export function createBlock(type: BlockType, order: number): ResumeBlock {
         data: {
           name: "",
           role: "",
+          roleVisible: true,
           email: "",
           phone: "",
           location: "",
