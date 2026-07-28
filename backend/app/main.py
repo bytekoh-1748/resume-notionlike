@@ -219,6 +219,7 @@ async def render_pdf(url: str) -> bytes:
     async with async_playwright() as playwright:
         browser = await playwright.chromium.launch(headless=True)
         page = await browser.new_page()
+        await page.emulate_media(media="screen")
         await page.goto(url, wait_until="networkidle")
         await page.wait_for_selector("[data-render-ready='true']", timeout=20_000)
         await page.evaluate("document.fonts.ready")

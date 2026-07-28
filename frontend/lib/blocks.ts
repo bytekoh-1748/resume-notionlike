@@ -1,4 +1,4 @@
-import type { BlockType, ResumeBlock } from "./types";
+import type { BlockType, ResumeBlock, ResumeDocument } from "./types";
 
 export const blockLabels: Record<BlockType, string> = {
   profile: "기본 정보",
@@ -89,7 +89,13 @@ export function createBlock(type: BlockType, order: number): ResumeBlock {
               description: "",
               achievements: "",
               url: "",
-              evidenceUrl: "",
+              evidenceLinks: [
+                {
+                  id: id(),
+                  label: "GitHub 저장소",
+                  url: "",
+                },
+              ],
               imageDataUrl: "",
             },
           ],
@@ -150,6 +156,71 @@ export function createBlock(type: BlockType, order: number): ResumeBlock {
 
 export function normalizeOrder(blocks: ResumeBlock[]): ResumeBlock[] {
   return blocks.map((block, order) => ({ ...block, order }));
+}
+
+const contactLinkLabels = /github|gitlab|블로그|blog|portfolio|포트폴리오|linkedin|링크드인/i;
+
+const isContactLinkBlock = (block: ResumeBlock) => {
+  if (block.type !== "links") return false;
+  const title = typeof block.data.title === "string" ? block.data.title.trim() : "";
+  const display = typeof block.data.display === "string" ? block.data.display : "";
+  const entries = Array.isArray(block.data.items)
+    ? (block.data.items as Array<Record<string, unknown>>)
+    : [];
+
+  return (
+    display === "inline" ||
+    title === "" ||
+    title === "링크" ||
+    (entries.length > 0 &&
+      entries.every((entry) =>
+        contactLinkLabels.test(
+          `${typeof entry.label === "string" ? entry.label : ""} ${
+            typeof entry.url === "string" ? entry.url : ""
+          }`,
+        ),
+      ))
+  );
+};
+
+export function mergeContactLinksIntoProfile(document: ResumeDocument): ResumeDocument {
+  const profileBlock = document.blocks.find((block) => block.type === "profile");
+  const contactLinkBlocks = document.blocks.filter(isContactLinkBlock);
+  if (!profileBlock || contactLinkBlocks.length === 0) return document;
+
+  const existingLinks = Array.isArray(profileBlock.data.contactLinks)
+    ? (profileBlock.data.contactLinks as Array<Record<string, unknown>>)
+    : [];
+  const legacyLinks = contactLinkBlocks.flatMap((block) =>
+    Array.isArray(block.data.items)
+      ? (block.data.items as Array<Record<string, unknown>>).map((entry, index) => ({
+          ...entry,
+          id:
+            typeof entry.id === "string" && entry.id
+              ? entry.id
+              : `contact-link-${block.id}-${index}`,
+        }))
+      : [],
+  );
+  const seen = new Set<string>();
+  const contactLinks = [...existingLinks, ...legacyLinks].filter((entry) => {
+    const label = typeof entry.label === "string" ? entry.label.trim() : "";
+    const url = typeof entry.url === "string" ? entry.url.trim() : "";
+    const key = `${label}\u0000${url}`;
+    if ((!label && !url) || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  const removedIds = new Set(contactLinkBlocks.map((block) => block.id));
+  const blocks = document.blocks
+    .filter((block) => !removedIds.has(block.id))
+    .map((block) =>
+      block.id === profileBlock.id
+        ? { ...block, data: { ...block.data, contactLinks } }
+        : block,
+    );
+
+  return { ...document, blocks: normalizeOrder(blocks) };
 }
 
 export function paginateBlocks(blocks: ResumeBlock[]): ResumeBlock[][] {

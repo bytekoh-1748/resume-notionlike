@@ -46,7 +46,7 @@ services:
       target: development
     restart: unless-stopped
     environment:
-      NEXT_PUBLIC_API_PORT: "8000"
+      VITE_API_PORT: ${VITE_API_PORT:-8000}
     ports:
       - "127.0.0.1:5173:3000"
     volumes:

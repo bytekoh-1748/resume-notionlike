@@ -74,6 +74,8 @@ const block = (
   data,
 });
 
+const linkItem = (label: string, url = "") => ({ id: id(), label, url });
+
 const profile = (order: number) =>
   block("profile", order, {
     name: "이름",
@@ -87,17 +89,8 @@ const profile = (order: number) =>
     imageZoom: 100,
     imagePlacement: "left",
     contactVisibility: { email: true, phone: true, location: true },
-  });
-
-const linkItem = (label: string, url = "") => ({ id: id(), label, url });
-
-const linkHub = (order: number, title = "", display: "inline" | "list" = "inline") =>
-  block("links", order, {
-    title,
-    display,
-    items: [
+    contactLinks: [
       linkItem("GitHub"),
-      linkItem("포트폴리오"),
       linkItem("기술 블로그"),
     ],
   });
@@ -116,7 +109,13 @@ const projectItem = (name: string) => ({
     "협업 범위와 내가 직접 기여한 부분",
   ].join("\n"),
   url: "",
-  evidenceUrl: "",
+  evidenceLinks: [
+    {
+      id: id(),
+      label: "GitHub 저장소",
+      url: "",
+    },
+  ],
   imageDataUrl: "",
 });
 
@@ -146,7 +145,6 @@ const baseDocument = (
 function onePageResume(): ResumeDocument {
   return baseDocument("resume-one-page", [
     profile(0),
-    linkHub(1),
     block("summary", 2, {
       title: "핵심 요약",
       content:
@@ -216,7 +214,6 @@ function onePageResume(): ResumeDocument {
 function twoPageResume(): ResumeDocument {
   return baseDocument("resume-two-page", [
     profile(0),
-    linkHub(1),
     block("summary", 2, {
       title: "소개",
       content:
@@ -318,6 +315,7 @@ function photoSidebarResume(): ResumeDocument {
         imageZoom: 100,
         imagePlacement: "right",
         contactVisibility: { email: true, phone: true, location: true },
+        contactLinks: [linkItem("GitHub"), linkItem("포트폴리오")],
         layout: "right-photo",
       }),
       block("experience", 1, {
@@ -387,12 +385,6 @@ function photoSidebarResume(): ResumeDocument {
         layoutColumn: "sidebar",
         items: [{ id: id(), language: "영어", level: "업무 회화" }],
       }),
-      block("links", 6, {
-        title: "링크",
-        layoutColumn: "sidebar",
-        display: "list",
-        items: [linkItem("GitHub"), linkItem("포트폴리오")],
-      }),
     ],
     "normal",
   );
@@ -415,7 +407,6 @@ function portfolio(): ResumeDocument {
     "portfolio",
     [
       profile(0),
-      linkHub(1),
       block("summary", 2, {
         title: "포트폴리오 소개",
         content:
@@ -460,7 +451,6 @@ function coverLetter(): ResumeDocument {
     "cover-letter",
     [
       profile(0),
-      linkHub(1),
       block("richText", 2, {
         title: "지원 동기",
         content: paragraphDocument([

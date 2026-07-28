@@ -47,6 +47,18 @@ def default_document() -> dict:
                         "phone": True,
                         "location": True,
                     },
+                    "contactLinks": [
+                        {
+                            "id": str(uuid4()),
+                            "label": "GitHub",
+                            "url": "https://github.com/",
+                        },
+                        {
+                            "id": str(uuid4()),
+                            "label": "기술 블로그",
+                            "url": "",
+                        },
+                    ],
                 },
             ),
             block(
@@ -93,7 +105,13 @@ def default_document() -> dict:
                             "description": "내 역할과 성과를 구체적으로 작성해 주세요.",
                             "achievements": "핵심 기여와 정량 성과를 한 줄씩 작성해 주세요.",
                             "url": "",
-                            "evidenceUrl": "",
+                            "evidenceLinks": [
+                                {
+                                    "id": str(uuid4()),
+                                    "label": "GitHub 저장소",
+                                    "url": "",
+                                }
+                            ],
                             "imageDataUrl": "",
                         }
                     ],
@@ -144,14 +162,6 @@ def default_document() -> dict:
                     "items": [{"id": str(uuid4()), "language": "영어", "level": "업무 회화"}],
                 },
                 "half",
-            ),
-            block(
-                "links",
-                9,
-                {
-                    "title": "링크",
-                    "items": [{"id": str(uuid4()), "label": "GitHub", "url": "https://github.com/"}],
-                },
             ),
         ],
     }

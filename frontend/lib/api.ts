@@ -17,7 +17,7 @@ export function getApiBase(): string {
   }
   const override = new URLSearchParams(window.location.search).get("api");
   if (override) return override;
-  const port = process.env.NEXT_PUBLIC_API_PORT || "8000";
+  const port = import.meta.env.VITE_API_PORT || "8000";
   return `${window.location.protocol}//${window.location.hostname}:${port}`;
 }
 

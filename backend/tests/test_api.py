@@ -44,6 +44,12 @@ def test_resume_lifecycle_and_revision_conflict():
         "phone": True,
         "location": True,
     }
+    assert profile["data"]["contactLinks"][0]["label"] == "GitHub"
+    assert profile["data"]["contactLinks"][0]["url"] == "https://github.com/"
+    assert not any(
+        block["type"] == "links"
+        for block in resume["draft_document"]["blocks"]
+    )
     assert profile["format"] == {
         "fontScale": 100,
         "bold": False,
@@ -64,6 +70,8 @@ def test_resume_lifecycle_and_revision_conflict():
     assert experience["data"]["items"][0]["role"] == ""
     assert project["data"]["items"][0]["organization"] == "진행한 곳"
     assert project["data"]["items"][0]["imageDataUrl"] == ""
+    assert project["data"]["items"][0]["evidenceLinks"][0]["label"] == "GitHub 저장소"
+    assert project["data"]["items"][0]["evidenceLinks"][0]["url"] == ""
     assert education["data"]["items"][0]["imageDataUrl"] == ""
     assert education["data"]["items"][0]["status"] == "재학 중"
 

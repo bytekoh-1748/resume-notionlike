@@ -46,7 +46,13 @@ import {
 } from "lucide-react";
 import { api, ApiError } from "../lib/api";
 import { blockFormatCssVariables, getBlockFormat } from "../lib/block-format";
-import { blockLabels, createBlock, normalizeOrder, paginateBlocks } from "../lib/blocks";
+import {
+  blockLabels,
+  createBlock,
+  mergeContactLinksIntoProfile,
+  normalizeOrder,
+  paginateBlocks,
+} from "../lib/blocks";
 import { useEditorStore } from "../lib/editor-store";
 import type { BlockType, ResumeBlock, ResumeDocument, SaveState } from "../lib/types";
 import { BlockEditor } from "./block-editor";
@@ -254,7 +260,8 @@ export function EditorPage() {
       .getResume(id)
       .then((value) => {
         if (cancelled) return;
-        load(value);
+        const mergedDocument = mergeContactLinksIntoProfile(value.draft_document);
+        load({ ...value, draft_document: mergedDocument });
         setTitle(value.title);
         revisionRef.current = value.revision;
         lastSavedRef.current = JSON.stringify({ title: value.title, document: value.draft_document });
@@ -498,12 +505,14 @@ export function EditorPage() {
             <h2>블록 추가</h2>
           </div>
           <div className="block-palette">
-            {(Object.keys(blockLabels) as BlockType[]).map((type) => (
-              <button key={type} type="button" onClick={() => addBlock(type)}>
-                <span><Plus size={14} /></span>
-                {blockLabels[type]}
-              </button>
-            ))}
+            {(Object.keys(blockLabels) as BlockType[])
+              .filter((type) => type !== "links")
+              .map((type) => (
+                <button key={type} type="button" onClick={() => addBlock(type)}>
+                  <span><Plus size={14} /></span>
+                  {blockLabels[type]}
+                </button>
+              ))}
           </div>
           <div className="theme-panel">
             <h3>문서 스타일</h3>

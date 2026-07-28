@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   BriefcaseBusiness,
   Link as LinkIcon,
@@ -9,7 +12,7 @@ import {
 import { FaGithub } from "react-icons/fa";
 import type { ResumeBlock, ResumeDocument, TiptapDocument } from "../lib/types";
 import { blockFormatCssVariables, getBlockFormat } from "../lib/block-format";
-import { paginateBlocks } from "../lib/blocks";
+import { mergeContactLinksIntoProfile, paginateBlocks } from "../lib/blocks";
 import { RichTextView } from "./rich-text-view";
 
 type Data = Record<string, unknown>;
@@ -22,6 +25,28 @@ const items = (data: Data) => (Array.isArray(data.items) ? (data.items as Item[]
 const imageDataUrl = (entry: Item) => {
   const source = text(entry.imageDataUrl);
   return /^data:image\/(?:jpeg|png|webp);base64,/i.test(source) ? source : "";
+};
+const projectEvidenceLinks = (entry: Item) => {
+  const links = Array.isArray(entry.evidenceLinks)
+    ? (entry.evidenceLinks as Item[])
+        .map((link, index) => ({
+          id: text(link.id) || `evidence-${index}`,
+          label: text(link.label) || `증거 링크 ${index + 1}`,
+          url: text(link.url),
+        }))
+        .filter((link) => Boolean(link.url))
+    : [];
+  const legacyUrl = text(entry.evidenceUrl);
+
+  if (legacyUrl && !links.some((link) => link.url === legacyUrl)) {
+    links.push({
+      id: "legacy-evidence",
+      label: "코드·PR·이슈",
+      url: legacyUrl,
+    });
+  }
+
+  return links;
 };
 const hasRichTextContent = (value: unknown): boolean => {
   if (typeof value === "string") return Boolean(value.trim());
@@ -49,7 +74,11 @@ const blockHasVisibleContent = (block: ResumeBlock) => {
         text(data.name) ||
         (text(data.email) && contactIsVisible(data, "email")) ||
         (text(data.phone) && contactIsVisible(data, "phone")) ||
-        (text(data.location) && contactIsVisible(data, "location")),
+        (text(data.location) && contactIsVisible(data, "location")) ||
+        (Array.isArray(data.contactLinks) &&
+          (data.contactLinks as Item[]).some(
+            (entry) => text(entry.label).trim() || text(entry.url).trim(),
+          )),
     );
   }
   if (block.type === "summary" || block.type === "aiExperience") {
@@ -77,6 +106,7 @@ const blockHasVisibleContent = (block: ResumeBlock) => {
     return entries.some(
       (entry) =>
         imageDataUrl(entry) ||
+        projectEvidenceLinks(entry).length > 0 ||
         [
           "name",
           "organization",
@@ -86,7 +116,6 @@ const blockHasVisibleContent = (block: ResumeBlock) => {
           "role",
           "stack",
           "url",
-          "evidenceUrl",
         ].some((key) => Boolean(text(entry[key]).trim())),
     );
   }
@@ -124,8 +153,23 @@ function ProjectItems({ entries }: { entries: Item[] }) {
     <div className="project-list">
       {entries.map((entry, index) => {
         const image = imageDataUrl(entry);
+        const previousEntry = index > 0 ? entries[index - 1] : null;
+        const previousImage = previousEntry ? imageDataUrl(previousEntry) : "";
         const projectName = text(entry.name);
         const organization = text(entry.organization);
+        const previousOrganization = previousEntry
+          ? text(previousEntry.organization).trim()
+          : "";
+        const sameOrganizationAsPrevious =
+          Boolean(organization.trim()) &&
+          organization.trim().toLocaleLowerCase() ===
+            previousOrganization.toLocaleLowerCase();
+        const reusePreviousOrganization =
+          sameOrganizationAsPrevious &&
+          entry.forceProjectImage !== true &&
+          (!image || (Boolean(previousImage) && image === previousImage));
+        const visibleImage = reusePreviousOrganization ? "" : image;
+        const hasMediaColumn = Boolean(visibleImage || reusePreviousOrganization);
         const description = text(entry.description);
         const achievements = text(entry.achievements)
           .split("\n")
@@ -135,73 +179,77 @@ function ProjectItems({ entries }: { entries: Item[] }) {
         const role = text(entry.role);
         const stack = text(entry.stack);
         const projectUrl = text(entry.url);
-        const evidenceUrl = text(entry.evidenceUrl);
-        const hasHeading = Boolean(projectName || organization || description || period);
-        const hasMeta = Boolean(role || stack || projectUrl || evidenceUrl);
+        const evidenceLinks = projectEvidenceLinks(entry);
+        const affiliation = [organization, role].filter(Boolean).join(" · ");
+        const hasHeading = Boolean(projectName || projectUrl || affiliation || period || stack);
+        const hasLinks = evidenceLinks.length > 0;
         const hasAchievements = achievements.length > 0;
 
-        if (!image && !hasHeading && !hasMeta && !hasAchievements) return null;
+        if (!image && !hasHeading && !description && !hasLinks && !hasAchievements) return null;
 
         return (
           <article
-            className={`project-item ${image ? "has-image" : ""}`}
+            className={`project-item ${hasMediaColumn ? "has-image" : ""} ${
+              reusePreviousOrganization ? "same-organization" : ""
+            }`}
             key={text(entry.id) || String(index)}
           >
-            {image && (
-              <div className="project-image">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={image}
-                  alt={`${organization || projectName || "프로젝트"} 로고 또는 사진`}
-                />
+            {visibleImage && (
+              <div className="project-media">
+                <div className="project-image">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={image}
+                    alt={`${organization || projectName || "프로젝트"} 로고 또는 사진`}
+                  />
+                </div>
               </div>
+            )}
+            {reusePreviousOrganization && (
+              <div className="project-media-spacer" aria-hidden="true" />
             )}
             <div className="project-main">
               {hasHeading && (
                 <div className="project-heading">
-                  {(projectName || organization || period) && (
-                    <div className="project-title-row">
-                      <div className="project-title-copy">
-                        {projectName && <h3>{projectName}</h3>}
-                        {organization && <p className="project-organization">{organization}</p>}
-                      </div>
-                      {period && <time>{period}</time>}
+                  {(projectName || projectUrl) && (
+                    <div className="project-title-line">
+                      {projectName && <h3>{projectName}</h3>}
+                      {projectUrl && (
+                        <a
+                          className="project-title-github"
+                          href={projectUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          aria-label={`${projectName || "프로젝트"} GitHub 저장소`}
+                        >
+                          <FaGithub aria-hidden="true" />
+                          GitHub
+                        </a>
+                      )}
                     </div>
                   )}
-                  {description && <p className="resume-description">{description}</p>}
+                  {affiliation && <p className="project-affiliation">{affiliation}</p>}
+                  {period && <time className="project-period">{period}</time>}
+                  {stack && <p className="project-stack">{stack}</p>}
                 </div>
               )}
-              {(hasMeta || hasAchievements) && (
-                <div
-                  className={`project-body ${hasMeta && hasAchievements ? "" : "single-column"}`}
-                >
-                  {hasMeta && (
-                    <aside className="project-meta">
-                      {role && <strong>{role}</strong>}
-                      {stack && <span>{stack}</span>}
-                      {(projectUrl || evidenceUrl) && (
-                        <div className="project-evidence-links">
-                          {projectUrl && (
-                            <a href={projectUrl} target="_blank" rel="noreferrer">
-                              프로젝트 상세
-                            </a>
-                          )}
-                          {evidenceUrl && (
-                            <a href={evidenceUrl} target="_blank" rel="noreferrer">
-                              코드·PR 증거
-                            </a>
-                          )}
-                        </div>
-                      )}
-                    </aside>
-                  )}
-                  {hasAchievements && (
-                    <ul>
-                      {achievements.map((achievement, achievementIndex) => (
-                        <li key={`${achievement}-${achievementIndex}`}>{achievement}</li>
-                      ))}
-                    </ul>
-                  )}
+              {description && (
+                <p className="resume-description project-description">{description}</p>
+              )}
+              {hasAchievements && (
+                <ul className="project-achievement-list">
+                  {achievements.map((achievement, achievementIndex) => (
+                    <li key={`${achievement}-${achievementIndex}`}>{achievement}</li>
+                  ))}
+                </ul>
+              )}
+              {hasLinks && (
+                <div className="project-evidence-links">
+                  {evidenceLinks.map((link) => (
+                    <a key={link.id} href={link.url} target="_blank" rel="noreferrer">
+                      {link.label}
+                    </a>
+                  ))}
                 </div>
               )}
             </div>
@@ -253,6 +301,9 @@ function CredentialItems({
             )}
             <div className="credential-main">
               {primary && <h3>{primary}</h3>}
+              {!experience && detail.length > 0 && (
+                <p className="credential-detail">{detail.join(" · ")}</p>
+              )}
               {meta.length > 0 && (
                 <div className="credential-meta">
                   {meta.map((item, metaIndex) => (
@@ -260,7 +311,9 @@ function CredentialItems({
                   ))}
                 </div>
               )}
-              {detail.length > 0 && <p className="credential-detail">{detail.join(" · ")}</p>}
+              {experience && detail.length > 0 && (
+                <p className="credential-detail">{detail.join(" · ")}</p>
+              )}
               {description && (
                 <p className="resume-description credential-description">
                   {description}
@@ -306,12 +359,27 @@ function ResumeBlockView({ block }: { block: ResumeBlock }) {
       transformOrigin: `${imagePositionX}% ${imagePositionY}%`,
     } as const;
     const contacts = [
-      { key: "email" as const, value: text(data.email), icon: Mail },
-      { key: "phone" as const, value: text(data.phone), icon: Phone },
-      { key: "location" as const, value: text(data.location), icon: MapPin },
+      { key: "email" as const, value: text(data.email), icon: Mail, href: "" },
+      { key: "phone" as const, value: text(data.phone), icon: Phone, href: "" },
+      { key: "location" as const, value: text(data.location), icon: MapPin, href: "" },
     ].filter((contact) => contact.value && contactIsVisible(data, contact.key));
+    const contactLinks = (
+      Array.isArray(data.contactLinks) ? (data.contactLinks as Item[]) : []
+    )
+      .map((entry, index) => {
+        const url = text(entry.url);
+        const label = text(entry.label) || url;
+        return {
+          key: text(entry.id) || `contact-link-${index}`,
+          value: label,
+          href: url,
+          icon: /github(?:\.com)?/i.test(`${label} ${url}`) ? FaGithub : LinkIcon,
+        };
+      })
+      .filter((contact) => contact.value);
+    const contactItems = [...contacts, ...contactLinks];
     const hasIdentity = Boolean(name);
-    const hasContent = hasIdentity || contacts.length > 0;
+    const hasContent = hasIdentity || contactItems.length > 0;
     const rightPhotoLayout =
       data.layout === "right-photo" && profileImagePlacement === "right";
 
@@ -325,7 +393,7 @@ function ResumeBlockView({ block }: { block: ResumeBlock }) {
               </div>
             </div>
           )}
-          {(profileImage || contacts.length > 0) && (
+          {(profileImage || contactItems.length > 0) && (
             <aside className="resume-profile-aside">
               {profileImage && (
                 <div className="resume-profile-photo">
@@ -337,13 +405,22 @@ function ResumeBlockView({ block }: { block: ResumeBlock }) {
                   />
                 </div>
               )}
-              {contacts.length > 0 && (
+              {contactItems.length > 0 && (
                 <div className="profile-contacts">
-                  {contacts.map((contact) => {
+                  {contactItems.map((contact) => {
                     const Icon = contact.icon;
-                    return (
-                      <span key={contact.key}>
+                    const content = (
+                      <>
                         <Icon size={11} /> {contact.value}
+                      </>
+                    );
+                    return contact.href ? (
+                      <a key={contact.key} href={contact.href} target="_blank" rel="noreferrer">
+                        {content}
+                      </a>
+                    ) : (
+                      <span key={contact.key}>
+                        {content}
                       </span>
                     );
                   })}
@@ -374,13 +451,22 @@ function ResumeBlockView({ block }: { block: ResumeBlock }) {
                 {name && <h1>{name}</h1>}
               </div>
             )}
-            {contacts.length > 0 && (
+            {contactItems.length > 0 && (
               <div className={`profile-contacts ${hasIdentity ? "" : "without-identity"}`}>
-                {contacts.map((contact) => {
+                {contactItems.map((contact) => {
                   const Icon = contact.icon;
-                  return (
-                    <span key={contact.key}>
+                  const content = (
+                    <>
                       <Icon size={11} /> {contact.value}
+                    </>
+                  );
+                  return contact.href ? (
+                    <a key={contact.key} href={contact.href} target="_blank" rel="noreferrer">
+                      {content}
+                    </a>
+                  ) : (
+                    <span key={contact.key}>
+                      {content}
                     </span>
                   );
                 })}
@@ -569,11 +655,15 @@ export function ResumeRenderer({
   document: ResumeDocument;
   mode?: "preview" | "public" | "print";
 }) {
-  const blocks = [...document.blocks]
+  const preparedDocument = mergeContactLinksIntoProfile(document);
+  const blocks = [...preparedDocument.blocks]
     .sort((a, b) => a.order - b.order)
     .filter(blockHasVisibleContent);
   const isPrintTemplate = document.template !== "resume-web";
   const isPhotoSidebarTemplate = document.template === "resume-photo-sidebar";
+  const resumeFont =
+    document.theme.font === "Pretendard" ? '"Pretendard Variable"' : document.theme.font;
+  const paginationKey = JSON.stringify(preparedDocument);
   const photoSidebarTypography = {
     profileName: 34,
     contact: 10,
@@ -590,7 +680,113 @@ export function ResumeRenderer({
     link: 11.5,
     linkInline: 10.5,
   };
-  const pages = isPrintTemplate ? paginateBlocks(blocks) : [];
+  const initialPages = useMemo(
+    () => (isPrintTemplate ? paginateBlocks(blocks) : []),
+    // The serialized document also captures nested block content and formatting.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [paginationKey, isPrintTemplate],
+  );
+  const [pages, setPages] = useState(initialPages);
+  const [paginationReady, setPaginationReady] = useState(!isPrintTemplate);
+  const paperRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      setPages(initialPages);
+      setPaginationReady(!isPrintTemplate);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [initialPages, isPrintTemplate]);
+
+  useEffect(() => {
+    if (!isPrintTemplate) return;
+
+    let cancelled = false;
+
+    const measure = async () => {
+      setPaginationReady(false);
+      await window.document.fonts.ready;
+
+      const paper = paperRef.current;
+      if (!paper || cancelled) return;
+
+      const images = Array.from(paper.querySelectorAll("img"));
+      await Promise.all(
+        images.map((image) =>
+          image.complete
+            ? Promise.resolve()
+            : image.decode().catch(() => undefined),
+        ),
+      );
+      await new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+      );
+      if (cancelled) return;
+
+      const pageElements = Array.from(
+        paper.querySelectorAll<HTMLElement>(".resume-page"),
+      );
+
+      for (let pageIndex = 0; pageIndex < pageElements.length; pageIndex += 1) {
+        const pageElement = pageElements[pageIndex];
+        const pageBlocks = pages[pageIndex] ?? [];
+        const blockElements = Array.from(
+          pageElement.querySelectorAll<HTMLElement>(
+            ".resume-block[data-resume-block-id]",
+          ),
+        );
+        if (pageBlocks.length < 2 || blockElements.length < 2) continue;
+
+        const pageRect = pageElement.getBoundingClientRect();
+        const pageStyle = getComputedStyle(pageElement);
+        const contentBottom =
+          pageRect.top +
+          pageElement.clientHeight -
+          Number.parseFloat(pageStyle.paddingBottom || "0");
+        const overflowingBlock = blockElements.find(
+          (blockElement) =>
+            blockElement.getBoundingClientRect().bottom > contentBottom + 1,
+        );
+        if (!overflowingBlock) continue;
+
+        const overflowingRect = overflowingBlock.getBoundingClientRect();
+        const overflowingId = overflowingBlock.dataset.resumeBlockId;
+        let splitIndex = pageBlocks.findIndex(
+          (resumeBlock) => resumeBlock.id === overflowingId,
+        );
+        if (splitIndex <= 0) continue;
+
+        for (const blockElement of blockElements) {
+          const blockRect = blockElement.getBoundingClientRect();
+          if (Math.abs(blockRect.top - overflowingRect.top) > 1) continue;
+          const rowBlockIndex = pageBlocks.findIndex(
+            (resumeBlock) =>
+              resumeBlock.id === blockElement.dataset.resumeBlockId,
+          );
+          if (rowBlockIndex >= 0) splitIndex = Math.min(splitIndex, rowBlockIndex);
+        }
+        if (splitIndex <= 0) continue;
+
+        const nextPages = pages.map((page) => [...page]);
+        nextPages.splice(
+          pageIndex,
+          1,
+          pageBlocks.slice(0, splitIndex),
+          pageBlocks.slice(splitIndex),
+        );
+        setPages(nextPages);
+        return;
+      }
+
+      setPaginationReady(true);
+    };
+
+    void measure();
+    return () => {
+      cancelled = true;
+    };
+  }, [isPrintTemplate, pages, paginationKey]);
+
   const renderBlock = (block: ResumeBlock, ignoreBreak = false) => {
     const format = getBlockFormat(block.format);
 
@@ -612,6 +808,7 @@ export function ResumeRenderer({
           } as React.CSSProperties
         }
         data-break-before={!ignoreBreak && block.print.breakBefore ? "true" : "false"}
+        data-resume-block-id={block.id}
       >
         <ResumeBlockView block={block} />
       </div>
@@ -620,14 +817,15 @@ export function ResumeRenderer({
 
   return (
     <article
-      className={`resume-paper resume-paper-${mode} density-${document.theme.density} template-${document.template ?? "resume-one-page"} ${isPrintTemplate ? "resume-paper-paged" : "resume-paper-flow"}`}
+      ref={paperRef}
+      className={`resume-paper resume-paper-${mode} density-${document.theme.density} template-${document.template ?? "resume-one-page"} ${isPrintTemplate ? "resume-paper-paged" : "resume-paper-flow"} ${isPrintTemplate && !paginationReady ? "is-paginating" : ""}`}
       style={
         {
           "--resume-accent": document.theme.accentColor,
-          "--resume-font": document.theme.font,
+          "--resume-font": resumeFont,
         } as React.CSSProperties
       }
-      data-render-ready="true"
+      data-render-ready={!isPrintTemplate || paginationReady ? "true" : "false"}
     >
       {isPrintTemplate ? (
         <div className="resume-pages">

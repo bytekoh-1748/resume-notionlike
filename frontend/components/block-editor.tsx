@@ -1,11 +1,20 @@
 "use client";
 
-import { type ChangeEvent, useEffect, useState } from "react";
 import {
+  type ChangeEvent,
+  type ClipboardEvent,
+  type KeyboardEvent,
+  useEffect,
+  useState,
+} from "react";
+import {
+  ArrowDown,
+  ArrowUp,
   BriefcaseBusiness,
   FolderKanban,
   GraduationCap,
   ImagePlus,
+  Link as LinkIcon,
   Mail,
   MapPin,
   Phone,
@@ -13,6 +22,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+import { FaGithub } from "react-icons/fa";
 import type { ResumeBlock, TiptapDocument } from "../lib/types";
 import { RichTextEditor } from "./rich-text";
 
@@ -77,22 +87,123 @@ function Field({
   onChange,
   placeholder,
   multiline = false,
+  bulleted = false,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
   multiline?: boolean;
+  bulleted?: boolean;
 }) {
+  const bulletLines = bulleted && value ? value.split("\n") : [];
+
   return (
     <label className={`field ${multiline ? "field-wide" : ""}`}>
       <span>{label}</span>
       {multiline ? (
-        <textarea value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} />
+        <div className={`textarea-control ${bulleted ? "bullet-textarea-control" : ""}`}>
+          {bulleted && (
+            <span className="bullet-line-markers" aria-hidden="true">
+              {bulletLines.map((_, index) => (
+                <i key={index}>•</i>
+              ))}
+            </span>
+          )}
+          <textarea
+            value={value}
+            onChange={(event) => onChange(event.target.value)}
+            placeholder={placeholder}
+          />
+        </div>
       ) : (
         <input value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} />
       )}
     </label>
+  );
+}
+
+function SkillsField({
+  skills,
+  onChange,
+}: {
+  skills: string[];
+  onChange: (skills: string[]) => void;
+}) {
+  const [draft, setDraft] = useState("");
+
+  const addSkills = (values: string[]) => {
+    const nextSkills = [...skills];
+    values
+      .flatMap((item) => item.split(/[,，\n]/))
+      .map((item) => item.trim())
+      .filter(Boolean)
+      .forEach((item) => {
+        if (!nextSkills.some((skill) => skill.toLocaleLowerCase() === item.toLocaleLowerCase())) {
+          nextSkills.push(item);
+        }
+      });
+
+    if (nextSkills.length !== skills.length) onChange(nextSkills);
+  };
+
+  const commitDraft = () => {
+    addSkills([draft]);
+    setDraft("");
+  };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.nativeEvent.isComposing) return;
+
+    if (event.key === "Enter" || event.key === ",") {
+      event.preventDefault();
+      commitDraft();
+      return;
+    }
+
+    if (event.key === "Backspace" && !draft && skills.length > 0) {
+      onChange(skills.slice(0, -1));
+    }
+  };
+
+  const handlePaste = (event: ClipboardEvent<HTMLInputElement>) => {
+    const pastedText = event.clipboardData.getData("text");
+    if (!/[,，\n]/.test(pastedText)) return;
+
+    event.preventDefault();
+    addSkills([draft, pastedText]);
+    setDraft("");
+  };
+
+  return (
+    <div className="field skills-field">
+      <span>스킬</span>
+      <div className="skills-input" onClick={(event) => event.currentTarget.querySelector("input")?.focus()}>
+        {skills.map((skill, index) => (
+          <span className="skills-input-tag" key={`${skill}-${index}`}>
+            {skill}
+            <button
+              type="button"
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => onChange(skills.filter((_, skillIndex) => skillIndex !== index))}
+              aria-label={`${skill} 삭제`}
+            >
+              <X size={12} aria-hidden="true" />
+            </button>
+          </span>
+        ))}
+        <input
+          value={draft}
+          onChange={(event) => setDraft(event.target.value)}
+          onKeyDown={handleKeyDown}
+          onPaste={handlePaste}
+          onBlur={commitDraft}
+          aria-label="스킬 추가"
+          placeholder={skills.length > 0 ? "스킬 추가" : "React 입력 후 Enter"}
+        />
+      </div>
+      <small>Enter 또는 쉼표로 스킬을 추가할 수 있습니다.</small>
+    </div>
   );
 }
 
@@ -119,7 +230,13 @@ function ListEditor({
 }: {
   entries: Item[];
   onChange: (items: Item[]) => void;
-  fields: Array<{ key: string; label: string; placeholder?: string; multiline?: boolean }>;
+  fields: Array<{
+    key: string;
+    label: string;
+    placeholder?: string;
+    multiline?: boolean;
+    bulleted?: boolean;
+  }>;
   createItem: () => Item;
   imageKind?: "experience" | "education" | "project";
   imageErrors?: Record<string, string>;
@@ -128,11 +245,46 @@ function ListEditor({
   const update = (index: number, key: string, next: unknown) => {
     onChange(entries.map((entry, entryIndex) => (entryIndex === index ? { ...entry, [key]: next } : entry)));
   };
+  const move = (index: number, direction: -1 | 1) => {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= entries.length) return;
+
+    const nextEntries = [...entries];
+    [nextEntries[index], nextEntries[targetIndex]] = [nextEntries[targetIndex], nextEntries[index]];
+    onChange(nextEntries);
+  };
+
   return (
     <div className="item-editor-list">
       {entries.map((entry, index) => {
         const itemId = String(entry.id || index);
         const imageDataUrl = typeof entry.imageDataUrl === "string" ? entry.imageDataUrl : "";
+        const previousEntry = index > 0 ? entries[index - 1] : null;
+        const previousImageDataUrl =
+          previousEntry && typeof previousEntry.imageDataUrl === "string"
+            ? previousEntry.imageDataUrl
+            : "";
+        const organization =
+          imageKind === "project" && typeof entry.organization === "string"
+            ? entry.organization.trim()
+            : "";
+        const previousOrganization =
+          imageKind === "project" &&
+          previousEntry &&
+          typeof previousEntry.organization === "string"
+            ? previousEntry.organization.trim()
+            : "";
+        const sameOrganizationAsPrevious =
+          Boolean(organization) &&
+          organization.toLocaleLowerCase() ===
+            previousOrganization.toLocaleLowerCase();
+        const reusePreviousOrganization =
+          imageKind === "project" &&
+          sameOrganizationAsPrevious &&
+          entry.forceProjectImage !== true &&
+          (!imageDataUrl ||
+            (Boolean(previousImageDataUrl) &&
+              imageDataUrl === previousImageDataUrl));
         const imageLabel =
           (imageKind === "experience"
             ? String(entry.company || "")
@@ -144,6 +296,29 @@ function ListEditor({
             : imageKind === "education"
               ? "학교"
               : "프로젝트");
+        const evidenceLinks: Item[] =
+          imageKind === "project"
+            ? Array.isArray(entry.evidenceLinks)
+              ? (entry.evidenceLinks as Item[])
+              : typeof entry.evidenceUrl === "string" && entry.evidenceUrl.trim()
+                ? [
+                    {
+                      id: `legacy-${itemId}`,
+                      label: "코드·PR·이슈",
+                      url: entry.evidenceUrl,
+                    },
+                  ]
+                : []
+            : [];
+        const updateEvidenceLinks = (nextLinks: Item[]) => {
+          onChange(
+            entries.map((currentEntry, entryIndex) =>
+              entryIndex === index
+                ? { ...currentEntry, evidenceLinks: nextLinks, evidenceUrl: "" }
+                : currentEntry,
+            ),
+          );
+        };
         return (
           <div
             className={`item-editor ${imageKind ? "item-editor-with-image" : ""}`}
@@ -151,49 +326,63 @@ function ListEditor({
           >
             {imageKind && (
               <div className="item-image-control">
-                <label className={`item-image-picker ${imageDataUrl ? "has-image" : ""}`}>
-                  {imageDataUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={imageDataUrl} alt={`${imageLabel} 로고 또는 사진`} />
-                  ) : (
-                    <span className="item-image-placeholder">
-                      {imageKind === "experience" ? (
-                        <BriefcaseBusiness size={24} />
-                      ) : imageKind === "project" ? (
-                        <FolderKanban size={24} />
-                      ) : (
-                        <GraduationCap size={25} />
-                      )}
+                {reusePreviousOrganization ? (
+                  <div className="item-image-reused">
+                    <FolderKanban size={20} />
+                    <strong>같은 기업</strong>
+                    <span>중복 사진 생략</span>
+                    <button
+                      type="button"
+                      onClick={() => update(index, "forceProjectImage", true)}
+                    >
+                      별도 사진 사용
+                    </button>
+                  </div>
+                ) : (
+                  <label className={`item-image-picker ${imageDataUrl ? "has-image" : ""}`}>
+                    {imageDataUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={imageDataUrl} alt={`${imageLabel} 로고 또는 사진`} />
+                    ) : (
+                      <span className="item-image-placeholder">
+                        {imageKind === "experience" ? (
+                          <BriefcaseBusiness size={24} />
+                        ) : imageKind === "project" ? (
+                          <FolderKanban size={24} />
+                        ) : (
+                          <GraduationCap size={25} />
+                        )}
+                      </span>
+                    )}
+                    <span className="item-image-action">
+                      <ImagePlus size={13} />
+                      {imageDataUrl ? "교체" : "사진 추가"}
                     </span>
-                  )}
-                  <span className="item-image-action">
-                    <ImagePlus size={13} />
-                    {imageDataUrl ? "교체" : "사진 추가"}
-                  </span>
-                  <input
-                    className="visually-hidden-file"
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    aria-label={`${imageLabel} 로고 또는 사진 ${imageDataUrl ? "교체" : "추가"}`}
-                    onChange={async (event) => {
-                      const input = event.currentTarget;
-                      const file = input.files?.[0];
-                      if (!file) return;
-                      onImageError?.(itemId, "");
-                      try {
-                        update(index, "imageDataUrl", await optimizeImage(file));
-                      } catch (error) {
-                        onImageError?.(
-                          itemId,
-                          error instanceof Error ? error.message : "이미지를 처리하지 못했습니다.",
-                        );
-                      } finally {
-                        input.value = "";
-                      }
-                    }}
-                  />
-                </label>
-                {imageDataUrl && (
+                    <input
+                      className="visually-hidden-file"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      aria-label={`${imageLabel} 로고 또는 사진 ${imageDataUrl ? "교체" : "추가"}`}
+                      onChange={async (event) => {
+                        const input = event.currentTarget;
+                        const file = input.files?.[0];
+                        if (!file) return;
+                        onImageError?.(itemId, "");
+                        try {
+                          update(index, "imageDataUrl", await optimizeImage(file));
+                        } catch (error) {
+                          onImageError?.(
+                            itemId,
+                            error instanceof Error ? error.message : "이미지를 처리하지 못했습니다.",
+                          );
+                        } finally {
+                          input.value = "";
+                        }
+                      }}
+                    />
+                  </label>
+                )}
+                {imageDataUrl && !reusePreviousOrganization && (
                   <button
                     type="button"
                     className="item-image-remove"
@@ -205,9 +394,56 @@ function ListEditor({
                     <X size={12} /> 사진 삭제
                   </button>
                 )}
+                {imageKind === "project" &&
+                  sameOrganizationAsPrevious &&
+                  entry.forceProjectImage === true && (
+                    <button
+                      type="button"
+                      className="item-image-reuse"
+                      onClick={() => update(index, "forceProjectImage", false)}
+                    >
+                      중복 사진 생략
+                    </button>
+                  )}
               </div>
             )}
             <div className="item-editor-content">
+              {imageKind === "project" && (
+                <div className="project-item-toolbar">
+                  <strong>프로젝트 {index + 1}</strong>
+                  <div className="project-item-actions">
+                    <button
+                      type="button"
+                      onClick={() => move(index, -1)}
+                      disabled={index === 0}
+                      aria-label={`프로젝트 ${index + 1} 위로 이동`}
+                      title="위로 이동"
+                    >
+                      <ArrowUp size={13} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => move(index, 1)}
+                      disabled={index === entries.length - 1}
+                      aria-label={`프로젝트 ${index + 1} 아래로 이동`}
+                      title="아래로 이동"
+                    >
+                      <ArrowDown size={13} />
+                    </button>
+                    <button
+                      type="button"
+                      className="project-item-delete"
+                      onClick={() =>
+                        onChange(entries.filter((_, entryIndex) => entryIndex !== index))
+                      }
+                      aria-label={`프로젝트 ${index + 1} 삭제`}
+                      title="프로젝트 삭제"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                </div>
+              )}
               <div className="item-editor-grid">
                 {fields.map((field) => (
                   <Field
@@ -216,24 +452,109 @@ function ListEditor({
                     value={typeof entry[field.key] === "string" ? (entry[field.key] as string) : ""}
                     placeholder={field.placeholder}
                     multiline={field.multiline}
+                    bulleted={field.bulleted}
                     onChange={(next) => update(index, field.key, next)}
                   />
                 ))}
               </div>
+              {imageKind === "project" && (
+                <div className="project-evidence-editor">
+                  <div className="project-evidence-editor-head">
+                    <div>
+                      <strong>코드·PR·이슈 증거 링크</strong>
+                      <span>GitHub 저장소, PR, 이슈 등을 여러 개 추가할 수 있습니다.</span>
+                    </div>
+                    <button
+                      type="button"
+                      className="project-evidence-add"
+                      onClick={() =>
+                        updateEvidenceLinks([
+                          ...evidenceLinks,
+                          { id: crypto.randomUUID(), label: "", url: "" },
+                        ])
+                      }
+                    >
+                      <Plus size={13} /> 링크 추가
+                    </button>
+                  </div>
+                  {evidenceLinks.length === 0 && (
+                    <p className="project-evidence-empty">
+                      증거 링크가 필요하면 링크 추가를 눌러 주세요.
+                    </p>
+                  )}
+                  {evidenceLinks.map((link, evidenceIndex) => (
+                    <div
+                      className="project-evidence-editor-row"
+                      key={String(link.id || evidenceIndex)}
+                    >
+                      <label className="field">
+                        <span>표시 이름</span>
+                        <input
+                          aria-label={`증거 링크 ${evidenceIndex + 1} 표시 이름`}
+                          value={typeof link.label === "string" ? link.label : ""}
+                          placeholder="예: PR #42"
+                          onChange={(event) =>
+                            updateEvidenceLinks(
+                              evidenceLinks.map((currentLink, currentIndex) =>
+                                currentIndex === evidenceIndex
+                                  ? { ...currentLink, label: event.target.value }
+                                  : currentLink,
+                              ),
+                            )
+                          }
+                        />
+                      </label>
+                      <label className="field">
+                        <span>URL</span>
+                        <input
+                          aria-label={`증거 링크 ${evidenceIndex + 1} URL`}
+                          value={typeof link.url === "string" ? link.url : ""}
+                          placeholder="https://github.com/..."
+                          onChange={(event) =>
+                            updateEvidenceLinks(
+                              evidenceLinks.map((currentLink, currentIndex) =>
+                                currentIndex === evidenceIndex
+                                  ? { ...currentLink, url: event.target.value }
+                                  : currentLink,
+                              ),
+                            )
+                          }
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        className="project-evidence-remove"
+                        aria-label={`증거 링크 ${evidenceIndex + 1} 삭제`}
+                        onClick={() =>
+                          updateEvidenceLinks(
+                            evidenceLinks.filter(
+                              (_, currentIndex) => currentIndex !== evidenceIndex,
+                            ),
+                          )
+                        }
+                      >
+                        <X size={13} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
               {imageErrors?.[itemId] && (
                 <p className="item-image-error" role="alert">
                   {imageErrors[itemId]}
                 </p>
               )}
             </div>
-            <button
-              type="button"
-              className="item-remove"
-              onClick={() => onChange(entries.filter((_, entryIndex) => entryIndex !== index))}
-              aria-label="항목 삭제"
-            >
-              <Trash2 size={14} />
-            </button>
+            {imageKind !== "project" && (
+              <button
+                type="button"
+                className="item-remove"
+                onClick={() => onChange(entries.filter((_, entryIndex) => entryIndex !== index))}
+                aria-label="항목 삭제"
+              >
+                <Trash2 size={14} />
+              </button>
+            )}
           </div>
         );
       })}
@@ -295,6 +616,11 @@ export function BlockEditor({
       });
     const visibleContacts = contactFields.filter((contact) => isContactVisible(contact.key));
     const hiddenContacts = contactFields.filter((contact) => !isContactVisible(contact.key));
+    const contactLinks = Array.isArray(data.contactLinks)
+      ? (data.contactLinks as Item[])
+      : [];
+    const updateContactLinks = (nextLinks: Item[]) =>
+      onData({ ...data, contactLinks: nextLinks });
     const profileImage = value(data, "imageDataUrl");
     const profileImageFit = data.imageFit === "contain" ? "contain" : "cover";
     const profileImagePositionX = numericValue(data, "imagePositionX", 50);
@@ -585,25 +911,79 @@ export function BlockEditor({
               </div>
             );
           })}
-          {hiddenContacts.length > 0 && (
-            <div className="profile-contact-add">
-              <span>연락처 항목 추가</span>
-              <div>
-                {hiddenContacts.map((contact) => {
-                  const Icon = contact.icon;
-                  return (
-                    <button
-                      type="button"
-                      key={contact.key}
-                      onClick={() => setContactVisible(contact.key, true)}
-                    >
-                      <Icon size={12} /> {contact.label}
-                    </button>
-                  );
-                })}
+          {contactLinks.map((contactLink, index) => {
+            const label = typeof contactLink.label === "string" ? contactLink.label : "";
+            const url = typeof contactLink.url === "string" ? contactLink.url : "";
+            const Icon = /github(?:\.com)?/i.test(`${label} ${url}`) ? FaGithub : LinkIcon;
+            const updateLink = (key: "label" | "url", next: string) =>
+              updateContactLinks(
+                contactLinks.map((entry, entryIndex) =>
+                  entryIndex === index ? { ...entry, [key]: next } : entry,
+                ),
+              );
+
+            return (
+              <div className="profile-contact-field profile-contact-link-field" key={String(contactLink.id || index)}>
+                <span className="profile-contact-icon">
+                  <Icon size={13} />
+                </span>
+                <div className="profile-contact-link-inputs">
+                  <Field
+                    label="링크 이름"
+                    value={label}
+                    placeholder="GitHub"
+                    onChange={(next) => updateLink("label", next)}
+                  />
+                  <Field
+                    label="URL"
+                    value={url}
+                    placeholder="https://"
+                    onChange={(next) => updateLink("url", next)}
+                  />
+                </div>
+                <button
+                  type="button"
+                  className="profile-contact-remove"
+                  onClick={() =>
+                    updateContactLinks(
+                      contactLinks.filter((_, entryIndex) => entryIndex !== index),
+                    )
+                  }
+                  aria-label={`${label || "링크"} 항목 제거`}
+                >
+                  <X size={13} />
+                </button>
               </div>
+            );
+          })}
+          <div className="profile-contact-add">
+            <span>연락처 항목 추가</span>
+            <div>
+              {hiddenContacts.map((contact) => {
+                const Icon = contact.icon;
+                return (
+                  <button
+                    type="button"
+                    key={contact.key}
+                    onClick={() => setContactVisible(contact.key, true)}
+                  >
+                    <Icon size={12} /> {contact.label}
+                  </button>
+                );
+              })}
+              <button
+                type="button"
+                onClick={() =>
+                  updateContactLinks([
+                    ...contactLinks,
+                    { id: uuid(), label: "", url: "" },
+                  ])
+                }
+              >
+                <LinkIcon size={12} /> 링크
+              </button>
             </div>
-          )}
+          </div>
         </div>
       </div>
     );
@@ -684,7 +1064,13 @@ export function BlockEditor({
             description: "",
             achievements: "",
             url: "",
-            evidenceUrl: "",
+            evidenceLinks: [
+              {
+                id: uuid(),
+                label: "GitHub 저장소",
+                url: "",
+              },
+            ],
             imageDataUrl: "",
           })}
           fields={[
@@ -697,8 +1083,7 @@ export function BlockEditor({
             { key: "period", label: "기간" },
             { key: "role", label: "담당 역할", placeholder: "백엔드 리드" },
             { key: "stack", label: "핵심 기술", placeholder: "Java, Spring Boot, PostgreSQL" },
-            { key: "url", label: "프로젝트 상세 링크" },
-            { key: "evidenceUrl", label: "코드·PR·이슈 증거 링크" },
+            { key: "url", label: "GitHub 저장소 링크" },
             {
               key: "description",
               label: "문제와 프로젝트 요약",
@@ -710,6 +1095,7 @@ export function BlockEditor({
               label: "핵심 성과 — 줄바꿈으로 구분",
               placeholder: "내가 기여한 일과 정량 결과를 한 줄씩 작성해 주세요.",
               multiline: true,
+              bulleted: true,
             },
           ]}
         />
@@ -760,16 +1146,9 @@ export function BlockEditor({
     return (
       <div>
         <SectionHeading data={data} onData={onData} />
-        <Field
-          label="스킬"
-          value={skills.join(", ")}
-          onChange={(next) =>
-            onData({
-              ...data,
-              items: next.split(",").map((item) => item.trim()).filter(Boolean),
-            })
-          }
-          placeholder="React, TypeScript, Python"
+        <SkillsField
+          skills={skills}
+          onChange={(nextSkills) => onData({ ...data, items: nextSkills })}
         />
       </div>
     );
