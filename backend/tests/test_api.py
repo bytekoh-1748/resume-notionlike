@@ -53,12 +53,17 @@ def test_resume_lifecycle_and_revision_conflict():
     experience = next(
         block for block in resume["draft_document"]["blocks"] if block["type"] == "experience"
     )
+    project = next(
+        block for block in resume["draft_document"]["blocks"] if block["type"] == "project"
+    )
     education = next(
         block for block in resume["draft_document"]["blocks"] if block["type"] == "education"
     )
     assert experience["data"]["items"][0]["imageDataUrl"] == ""
     assert experience["data"]["items"][0]["employmentType"] == "정규직"
     assert experience["data"]["items"][0]["role"] == ""
+    assert project["data"]["items"][0]["organization"] == "진행한 곳"
+    assert project["data"]["items"][0]["imageDataUrl"] == ""
     assert education["data"]["items"][0]["imageDataUrl"] == ""
     assert education["data"]["items"][0]["status"] == "재학 중"
 

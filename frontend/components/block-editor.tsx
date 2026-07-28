@@ -3,6 +3,7 @@
 import { type ChangeEvent, useEffect, useState } from "react";
 import {
   BriefcaseBusiness,
+  FolderKanban,
   GraduationCap,
   ImagePlus,
   Mail,
@@ -120,7 +121,7 @@ function ListEditor({
   onChange: (items: Item[]) => void;
   fields: Array<{ key: string; label: string; placeholder?: string; multiline?: boolean }>;
   createItem: () => Item;
-  imageKind?: "experience" | "education";
+  imageKind?: "experience" | "education" | "project";
   imageErrors?: Record<string, string>;
   onImageError?: (itemId: string, message: string) => void;
 }) {
@@ -133,8 +134,16 @@ function ListEditor({
         const itemId = String(entry.id || index);
         const imageDataUrl = typeof entry.imageDataUrl === "string" ? entry.imageDataUrl : "";
         const imageLabel =
-          (imageKind === "experience" ? String(entry.company || "") : String(entry.school || "")) ||
-          (imageKind === "experience" ? "회사" : "학교");
+          (imageKind === "experience"
+            ? String(entry.company || "")
+            : imageKind === "education"
+              ? String(entry.school || "")
+              : String(entry.organization || entry.name || "")) ||
+          (imageKind === "experience"
+            ? "회사"
+            : imageKind === "education"
+              ? "학교"
+              : "프로젝트");
         return (
           <div
             className={`item-editor ${imageKind ? "item-editor-with-image" : ""}`}
@@ -150,6 +159,8 @@ function ListEditor({
                     <span className="item-image-placeholder">
                       {imageKind === "experience" ? (
                         <BriefcaseBusiness size={24} />
+                      ) : imageKind === "project" ? (
+                        <FolderKanban size={24} />
                       ) : (
                         <GraduationCap size={25} />
                       )}
@@ -660,9 +671,13 @@ export function BlockEditor({
         <ListEditor
           entries={list(data)}
           onChange={(items) => onData({ ...data, items })}
+          imageKind="project"
+          imageErrors={imageErrors}
+          onImageError={setImageError}
           createItem={() => ({
             id: uuid(),
             name: "",
+            organization: "",
             period: "",
             role: "",
             stack: "",
@@ -670,9 +685,15 @@ export function BlockEditor({
             achievements: "",
             url: "",
             evidenceUrl: "",
+            imageDataUrl: "",
           })}
           fields={[
-            { key: "name", label: "프로젝트" },
+            { key: "name", label: "프로젝트명", placeholder: "프로젝트명" },
+            {
+              key: "organization",
+              label: "진행한 곳",
+              placeholder: "회사명, 학교명, 기관명 또는 개인 프로젝트",
+            },
             { key: "period", label: "기간" },
             { key: "role", label: "담당 역할", placeholder: "백엔드 리드" },
             { key: "stack", label: "핵심 기술", placeholder: "Java, Spring Boot, PostgreSQL" },

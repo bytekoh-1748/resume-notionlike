@@ -74,10 +74,20 @@ const blockHasVisibleContent = (block: ResumeBlock) => {
     );
   }
   if (block.type === "project") {
-    return entries.some((entry) =>
-      ["name", "description", "achievements", "period", "role", "stack", "url", "evidenceUrl"].some(
-        (key) => Boolean(text(entry[key]).trim()),
-      ),
+    return entries.some(
+      (entry) =>
+        imageDataUrl(entry) ||
+        [
+          "name",
+          "organization",
+          "description",
+          "achievements",
+          "period",
+          "role",
+          "stack",
+          "url",
+          "evidenceUrl",
+        ].some((key) => Boolean(text(entry[key]).trim())),
     );
   }
   if (block.type === "skills" || block.type === "bulletList") {
@@ -113,7 +123,9 @@ function ProjectItems({ entries }: { entries: Item[] }) {
   return (
     <div className="project-list">
       {entries.map((entry, index) => {
+        const image = imageDataUrl(entry);
         const projectName = text(entry.name);
+        const organization = text(entry.organization);
         const description = text(entry.description);
         const achievements = text(entry.achievements)
           .split("\n")
@@ -124,58 +136,75 @@ function ProjectItems({ entries }: { entries: Item[] }) {
         const stack = text(entry.stack);
         const projectUrl = text(entry.url);
         const evidenceUrl = text(entry.evidenceUrl);
-        const hasHeading = Boolean(projectName || description || period);
+        const hasHeading = Boolean(projectName || organization || description || period);
         const hasMeta = Boolean(role || stack || projectUrl || evidenceUrl);
         const hasAchievements = achievements.length > 0;
 
-        if (!hasHeading && !hasMeta && !hasAchievements) return null;
+        if (!image && !hasHeading && !hasMeta && !hasAchievements) return null;
 
         return (
-          <article className="project-item" key={text(entry.id) || String(index)}>
-            {hasHeading && (
-              <div className="project-heading">
-                {(projectName || period) && (
-                  <div className="project-title-row">
-                    {projectName && <h3>{projectName}</h3>}
-                    {period && <time>{period}</time>}
-                  </div>
-                )}
-                {description && <p className="resume-description">{description}</p>}
+          <article
+            className={`project-item ${image ? "has-image" : ""}`}
+            key={text(entry.id) || String(index)}
+          >
+            {image && (
+              <div className="project-image">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={image}
+                  alt={`${organization || projectName || "프로젝트"} 로고 또는 사진`}
+                />
               </div>
             )}
-            {(hasMeta || hasAchievements) && (
-              <div
-                className={`project-body ${hasMeta && hasAchievements ? "" : "single-column"}`}
-              >
-                {hasMeta && (
-                  <aside className="project-meta">
-                    {role && <strong>{role}</strong>}
-                    {stack && <span>{stack}</span>}
-                    {(projectUrl || evidenceUrl) && (
-                      <div className="project-evidence-links">
-                        {projectUrl && (
-                          <a href={projectUrl} target="_blank" rel="noreferrer">
-                            프로젝트 상세
-                          </a>
-                        )}
-                        {evidenceUrl && (
-                          <a href={evidenceUrl} target="_blank" rel="noreferrer">
-                            코드·PR 증거
-                          </a>
-                        )}
+            <div className="project-main">
+              {hasHeading && (
+                <div className="project-heading">
+                  {(projectName || organization || period) && (
+                    <div className="project-title-row">
+                      <div className="project-title-copy">
+                        {projectName && <h3>{projectName}</h3>}
+                        {organization && <p className="project-organization">{organization}</p>}
                       </div>
-                    )}
-                  </aside>
-                )}
-                {hasAchievements && (
-                  <ul>
-                    {achievements.map((achievement, achievementIndex) => (
-                      <li key={`${achievement}-${achievementIndex}`}>{achievement}</li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            )}
+                      {period && <time>{period}</time>}
+                    </div>
+                  )}
+                  {description && <p className="resume-description">{description}</p>}
+                </div>
+              )}
+              {(hasMeta || hasAchievements) && (
+                <div
+                  className={`project-body ${hasMeta && hasAchievements ? "" : "single-column"}`}
+                >
+                  {hasMeta && (
+                    <aside className="project-meta">
+                      {role && <strong>{role}</strong>}
+                      {stack && <span>{stack}</span>}
+                      {(projectUrl || evidenceUrl) && (
+                        <div className="project-evidence-links">
+                          {projectUrl && (
+                            <a href={projectUrl} target="_blank" rel="noreferrer">
+                              프로젝트 상세
+                            </a>
+                          )}
+                          {evidenceUrl && (
+                            <a href={evidenceUrl} target="_blank" rel="noreferrer">
+                              코드·PR 증거
+                            </a>
+                          )}
+                        </div>
+                      )}
+                    </aside>
+                  )}
+                  {hasAchievements && (
+                    <ul>
+                      {achievements.map((achievement, achievementIndex) => (
+                        <li key={`${achievement}-${achievementIndex}`}>{achievement}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+            </div>
           </article>
         );
       })}

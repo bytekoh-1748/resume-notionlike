@@ -86,6 +86,7 @@ def default_document() -> dict:
                         {
                             "id": str(uuid4()),
                             "name": "프로젝트 이름",
+                            "organization": "진행한 곳",
                             "period": "2025.01 - 2025.06",
                             "role": "백엔드 개발",
                             "stack": "FastAPI, PostgreSQL, Docker",
@@ -93,6 +94,7 @@ def default_document() -> dict:
                             "achievements": "핵심 기여와 정량 성과를 한 줄씩 작성해 주세요.",
                             "url": "",
                             "evidenceUrl": "",
+                            "imageDataUrl": "",
                         }
                     ],
                 },

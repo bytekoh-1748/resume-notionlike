@@ -105,6 +105,7 @@ const linkHub = (order: number, title = "", display: "inline" | "list" = "inline
 const projectItem = (name: string) => ({
   id: id(),
   name,
+  organization: "진행한 곳",
   period: "YYYY.MM - YYYY.MM",
   role: "담당 역할",
   stack: "핵심 기술",
@@ -116,6 +117,7 @@ const projectItem = (name: string) => ({
   ].join("\n"),
   url: "",
   evidenceUrl: "",
+  imageDataUrl: "",
 });
 
 const paragraphDocument = (paragraphs: string[]): TiptapDocument => ({

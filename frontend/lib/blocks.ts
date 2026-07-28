@@ -82,6 +82,7 @@ export function createBlock(type: BlockType, order: number): ResumeBlock {
             {
               id: id(),
               name: "",
+              organization: "",
               period: "",
               role: "",
               stack: "",
@@ -89,6 +90,7 @@ export function createBlock(type: BlockType, order: number): ResumeBlock {
               achievements: "",
               url: "",
               evidenceUrl: "",
+              imageDataUrl: "",
             },
           ],
         },
