@@ -9,7 +9,6 @@ import {
   Copy,
   FileText,
   Files,
-  MoreHorizontal,
   Plus,
   ScrollText,
   Trash2,
@@ -156,9 +155,7 @@ export function Dashboard() {
       <section className="dashboard-content">
         <div className="dashboard-title-row">
           <div>
-            <p className="eyebrow">LOCAL RESUME STUDIO</p>
             <h1>{showTrash ? "휴지통" : "내 문서"}</h1>
-            <p>이력서·포트폴리오·자기소개서를 연결하고 PDF까지 한 곳에서 관리하세요.</p>
           </div>
           {!showTrash && (
             <button className="primary-button" type="button" onClick={openTemplatePicker}>
@@ -177,7 +174,6 @@ export function Dashboard() {
               <FileText size={26} />
             </span>
             <h2>{showTrash ? "휴지통이 비어 있습니다" : "첫 문서를 만들어 보세요"}</h2>
-            <p>{showTrash ? "삭제한 문서가 여기에 표시됩니다." : "목적에 맞는 템플릿을 고르고 바로 편집할 수 있습니다."}</p>
             {!showTrash && (
               <button className="primary-button" type="button" onClick={openTemplatePicker}>
                 <Plus size={17} /> 템플릿 고르기
@@ -206,18 +202,7 @@ export function Dashboard() {
                 <div className="resume-card-body">
                   <div>
                     <h2>{resume.title}</h2>
-                    <p>
-                      {new Intl.DateTimeFormat("ko-KR", {
-                        month: "long",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      }).format(new Date(resume.updated_at))}
-                    </p>
                   </div>
-                  <button className="icon-button subtle" type="button" aria-label="추가 메뉴">
-                    <MoreHorizontal size={18} />
-                  </button>
                 </div>
                 <div className="resume-card-actions">
                   {showTrash ? (
@@ -259,9 +244,7 @@ export function Dashboard() {
           >
             <header className="template-modal-header">
               <div>
-                <p className="eyebrow">START WITH A PURPOSE</p>
                 <h2 id="template-modal-title">어떤 문서를 만들까요?</h2>
-                <p>문서마다 책임을 하나로 나누고, 필요한 상세 정보는 링크로 연결하세요.</p>
               </div>
               <button
                 className="icon-button subtle"
@@ -290,7 +273,6 @@ export function Dashboard() {
                       <span className="template-preview-icon">
                         <TemplateIcon template={option.id} />
                       </span>
-                      <span className="template-page-label">{option.pageLabel}</span>
                       <div className="template-preview-paper">
                         <span className="template-preview-title" />
                         <span className="template-preview-line long" />
@@ -304,16 +286,7 @@ export function Dashboard() {
                       )}
                     </div>
                     <div className="template-card-copy">
-                      <div className="template-card-title">
-                        <strong>{option.title}</strong>
-                        <span>{option.badge}</span>
-                      </div>
-                      <p>{option.description}</p>
-                      <ul>
-                        {option.sections.map((section) => (
-                          <li key={section}>{section}</li>
-                        ))}
-                      </ul>
+                      <strong>{option.title}</strong>
                     </div>
                     <span className="template-radio">
                       {selected && <Check size={14} />}
@@ -334,9 +307,6 @@ export function Dashboard() {
                 />
               </label>
               <div>
-                <p>
-                  선택됨 <strong>{getTemplateOption(selectedTemplate).title}</strong>
-                </p>
                 <button
                   className="primary-button"
                   type="button"

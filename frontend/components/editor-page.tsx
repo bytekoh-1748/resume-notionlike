@@ -45,7 +45,6 @@ import {
 import { api, ApiError } from "../lib/api";
 import { blockLabels, createBlock, normalizeOrder } from "../lib/blocks";
 import { useEditorStore } from "../lib/editor-store";
-import { getTemplateOption } from "../lib/templates";
 import type { BlockType, ResumeBlock, ResumeDocument, SaveState } from "../lib/types";
 import { BlockEditor } from "./block-editor";
 import { ResumeRenderer } from "./resume-renderer";
@@ -396,14 +395,7 @@ export function EditorPage() {
       {sidebarOpen && (
         <aside className="block-sidebar">
           <div className="sidebar-heading">
-            <p className="eyebrow">BLOCK LIBRARY</p>
             <h2>블록 추가</h2>
-            <p>필요한 섹션을 골라 캔버스에 추가하세요.</p>
-          </div>
-          <div className="current-template-card">
-            <span>현재 템플릿</span>
-            <strong>{getTemplateOption(document.template ?? "resume-one-page").title}</strong>
-            <small>{getTemplateOption(document.template ?? "resume-one-page").pageLabel}</small>
           </div>
           <div className="block-palette">
             {(Object.keys(blockLabels) as BlockType[]).map((type) => (

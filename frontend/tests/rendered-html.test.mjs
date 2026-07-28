@@ -32,7 +32,7 @@ test("renders the Blockfolio dashboard shell", async () => {
   assert.match(html, /Blockfolio/);
   assert.match(html, /내 문서/);
   assert.match(html, /새 문서/);
-  assert.match(html, /이력서·포트폴리오·자기소개서/);
+  assert.doesNotMatch(html, /PDF까지 한 곳에서 관리하세요/);
   assert.doesNotMatch(html, /codex-preview|Your site is taking shape|react-loading-skeleton/);
 });
 

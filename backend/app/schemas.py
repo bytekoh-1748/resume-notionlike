@@ -29,7 +29,7 @@ TemplateId = Literal[
 
 class Theme(BaseModel):
     font: str = "Pretendard"
-    accentColor: str = "#f97316"
+    accentColor: str = "#024ad8"
     density: Literal["compact", "normal"] = "normal"
 
 

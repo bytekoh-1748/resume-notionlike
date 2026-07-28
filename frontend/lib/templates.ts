@@ -9,10 +9,6 @@ import type {
 export type TemplateOption = {
   id: TemplateId;
   title: string;
-  badge: string;
-  description: string;
-  pageLabel: string;
-  sections: string[];
   defaultTitle: string;
 };
 
@@ -20,37 +16,21 @@ export const templateOptions: TemplateOption[] = [
   {
     id: "resume-one-page",
     title: "1장 이력서",
-    badge: "7초 스캔",
-    description: "핵심 성과와 스킬만 한 장에 압축하고, 상세 내용은 증거 링크로 확장합니다.",
-    pageLabel: "1 PAGE · A4",
-    sections: ["핵심 소개", "경력·프로젝트", "스킬·증거 링크"],
     defaultTitle: "1장 이력서",
   },
   {
     id: "resume-two-page",
     title: "2장 이력서",
-    badge: "추천",
-    description: "첫 장은 프로필과 대표 프로젝트, 둘째 장은 경력·학력·스킬을 담습니다.",
-    pageLabel: "2 PAGES · A4",
-    sections: ["1P 프로필·대표 프로젝트", "2P 경력·학력", "문서 생태계 링크"],
     defaultTitle: "2장 이력서",
   },
   {
     id: "portfolio",
     title: "기술 포트폴리오",
-    badge: "깊이 탐색",
-    description: "프로젝트의 의사결정, 기술적 도전과 결과를 깊게 설명하는 문서입니다.",
-    pageLabel: "DEEP DIVE",
-    sections: ["프로젝트 맥락", "기술적 선택", "코드·PR 증거"],
     defaultTitle: "기술 포트폴리오",
   },
   {
     id: "cover-letter",
     title: "자기소개서",
-    badge: "사람의 맥락",
-    description: "지원 동기, 문제 해결 방식과 가치관을 서사 중심으로 정리합니다.",
-    pageLabel: "NARRATIVE",
-    sections: ["지원 동기", "문제 해결 방식", "협업·가치관"],
     defaultTitle: "자기소개서",
   },
 ];
@@ -128,7 +108,7 @@ const baseDocument = (
   template,
   theme: {
     font: "Pretendard",
-    accentColor: "#f97316",
+    accentColor: "#024ad8",
     density,
   },
   blocks,

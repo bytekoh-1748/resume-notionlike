@@ -18,7 +18,7 @@ def default_document() -> dict:
         "template": "resume-one-page",
         "theme": {
             "font": "Pretendard",
-            "accentColor": "#f97316",
+            "accentColor": "#024ad8",
             "density": "normal",
         },
         "blocks": [

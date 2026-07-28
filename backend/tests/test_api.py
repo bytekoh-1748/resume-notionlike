@@ -35,7 +35,7 @@ def test_resume_lifecycle_and_revision_conflict():
     assert resume["revision"] == 1
     assert len(resume["draft_document"]["blocks"]) >= 5
     assert resume["draft_document"]["template"] == "resume-one-page"
-    assert resume["draft_document"]["theme"]["accentColor"] == "#f97316"
+    assert resume["draft_document"]["theme"]["accentColor"] == "#024ad8"
     profile = next(
         block for block in resume["draft_document"]["blocks"] if block["type"] == "profile"
     )
@@ -103,7 +103,7 @@ def test_create_document_with_explicit_template():
         "template": "resume-two-page",
         "theme": {
             "font": "Pretendard",
-            "accentColor": "#f97316",
+            "accentColor": "#024ad8",
             "density": "compact",
         },
         "blocks": [

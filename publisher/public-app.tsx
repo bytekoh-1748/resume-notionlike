@@ -56,7 +56,6 @@ function PublicApp() {
             <span>Blockfolio</span>
           </span>
           <h1>Published resumes</h1>
-          <p>로컬 스튜디오에서 발행한 읽기 전용 문서입니다.</p>
         </header>
         <div className="published-index-list">
           {index.map((item) => (
@@ -64,7 +63,6 @@ function PublicApp() {
               <FileText size={18} />
               <span>
                 <strong>{item.title}</strong>
-                <small>{new Date(item.published_at).toLocaleDateString("ko-KR")}</small>
               </span>
             </a>
           ))}
