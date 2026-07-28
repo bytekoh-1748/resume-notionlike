@@ -274,6 +274,47 @@ function ResumeBlockView({ block }: { block: ResumeBlock }) {
     ].filter((contact) => contact.value && contactIsVisible(data, contact.key));
     const hasIdentity = Boolean(name);
     const hasContent = hasIdentity || contacts.length > 0;
+    const rightPhotoLayout = data.layout === "right-photo";
+
+    if (rightPhotoLayout) {
+      return (
+        <section className="resume-profile resume-profile-right-photo">
+          {hasIdentity && (
+            <div className="resume-profile-content">
+              <div className="resume-profile-heading">
+                <h1>{name}</h1>
+              </div>
+            </div>
+          )}
+          {(profileImage || contacts.length > 0) && (
+            <aside className="resume-profile-aside">
+              {profileImage && (
+                <div className="resume-profile-photo">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={profileImage}
+                    alt={`${name || "지원자"} 프로필`}
+                    style={profileImageStyle}
+                  />
+                </div>
+              )}
+              {contacts.length > 0 && (
+                <div className="profile-contacts">
+                  {contacts.map((contact) => {
+                    const Icon = contact.icon;
+                    return (
+                      <span key={contact.key}>
+                        <Icon size={11} /> {contact.value}
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
+            </aside>
+          )}
+        </section>
+      );
+    }
 
     return (
       <section
@@ -493,6 +534,23 @@ export function ResumeRenderer({
     .sort((a, b) => a.order - b.order)
     .filter(blockHasVisibleContent);
   const isPrintTemplate = document.template !== "resume-web";
+  const isPhotoSidebarTemplate = document.template === "resume-photo-sidebar";
+  const photoSidebarTypography = {
+    profileName: 34,
+    contact: 10,
+    sectionTitle: 15,
+    body: 12.5,
+    projectTitle: 15,
+    meta: 10.5,
+    projectBody: 12,
+    credentialTitle: 14,
+    credentialDetail: 11.5,
+    simpleTitle: 12.5,
+    simpleBody: 11.5,
+    skill: 11.5,
+    link: 11.5,
+    linkInline: 10.5,
+  };
   const pages = isPrintTemplate ? paginateBlocks(blocks) : [];
   const renderBlock = (block: ResumeBlock, ignoreBreak = false) => {
     const format = getBlockFormat(block.format);
@@ -508,7 +566,10 @@ export function ResumeRenderer({
         style={
           {
             breakBefore: !ignoreBreak && block.print.breakBefore ? "page" : "auto",
-            ...blockFormatCssVariables(format.fontScale),
+            ...blockFormatCssVariables(
+              format.fontScale,
+              isPhotoSidebarTemplate ? photoSidebarTypography : undefined,
+            ),
           } as React.CSSProperties
         }
         data-break-before={!ignoreBreak && block.print.breakBefore ? "true" : "false"}
@@ -537,9 +598,41 @@ export function ResumeRenderer({
               key={pageBlocks[0]?.id ?? `page-${pageIndex}`}
               aria-label={`A4 ${pageIndex + 1}페이지`}
             >
-              <div className="resume-grid">
-                {pageBlocks.map((resumeBlock) => renderBlock(resumeBlock, true))}
-              </div>
+              {isPhotoSidebarTemplate ? (
+                <div className="resume-sidebar-layout">
+                  {pageBlocks.some((resumeBlock) => resumeBlock.type === "profile") && (
+                    <div className="resume-sidebar-header">
+                      {pageBlocks
+                        .filter((resumeBlock) => resumeBlock.type === "profile")
+                        .map((resumeBlock) => renderBlock(resumeBlock, true))}
+                    </div>
+                  )}
+                  <div className="resume-sidebar-columns">
+                    <div className="resume-sidebar-main">
+                      {pageBlocks
+                        .filter(
+                          (resumeBlock) =>
+                            resumeBlock.type !== "profile" &&
+                            resumeBlock.data.layoutColumn !== "sidebar",
+                        )
+                        .map((resumeBlock) => renderBlock(resumeBlock, true))}
+                    </div>
+                    <aside className="resume-sidebar-side">
+                      {pageBlocks
+                        .filter(
+                          (resumeBlock) =>
+                            resumeBlock.type !== "profile" &&
+                            resumeBlock.data.layoutColumn === "sidebar",
+                        )
+                        .map((resumeBlock) => renderBlock(resumeBlock, true))}
+                    </aside>
+                  </div>
+                </div>
+              ) : (
+                <div className="resume-grid">
+                  {pageBlocks.map((resumeBlock) => renderBlock(resumeBlock, true))}
+                </div>
+              )}
             </div>
           ))}
         </div>

@@ -149,6 +149,61 @@ def test_create_document_with_explicit_template():
     assert payload["draft_document"]["blocks"][1]["print"]["breakBefore"] is True
 
 
+def test_create_photo_sidebar_template():
+    document = {
+        "schemaVersion": 1,
+        "template": "resume-photo-sidebar",
+        "theme": {
+            "font": "Pretendard",
+            "accentColor": "#024ad8",
+            "density": "normal",
+        },
+        "blocks": [
+            {
+                "id": "photo-sidebar-profile",
+                "type": "profile",
+                "order": 0,
+                "width": "full",
+                "print": {"breakBefore": False},
+                "data": {"name": "사진형 테스트", "layout": "right-photo"},
+            },
+            {
+                "id": "photo-sidebar-experience",
+                "type": "experience",
+                "order": 1,
+                "width": "full",
+                "print": {"breakBefore": False},
+                "data": {
+                    "title": "경력",
+                    "layoutColumn": "main",
+                    "items": [],
+                },
+            },
+            {
+                "id": "photo-sidebar-education",
+                "type": "education",
+                "order": 2,
+                "width": "full",
+                "print": {"breakBefore": False},
+                "data": {
+                    "title": "학력",
+                    "layoutColumn": "sidebar",
+                    "items": [],
+                },
+            },
+        ],
+    }
+    created = client.post(
+        "/api/resumes",
+        json={"title": "사진형 템플릿 테스트", "document": document},
+    )
+    assert created.status_code == 201
+    payload = created.json()["draft_document"]
+    assert payload["template"] == "resume-photo-sidebar"
+    assert payload["blocks"][0]["data"]["layout"] == "right-photo"
+    assert payload["blocks"][2]["data"]["layoutColumn"] == "sidebar"
+
+
 def test_duplicate_rekeys_blocks_and_restore():
     created = client.post("/api/resumes", json={"title": "원본"}).json()
     duplicate = client.post(f"/api/resumes/{created['id']}/duplicate")

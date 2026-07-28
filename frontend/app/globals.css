@@ -3646,6 +3646,58 @@ body,
   padding-top: 41px;
 }
 
+.editable-sidebar-layout {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 42px;
+}
+
+.editable-sidebar-header {
+  display: grid;
+}
+
+.editable-sidebar-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 34px;
+}
+
+.editable-sidebar-main,
+.editable-sidebar-side {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: 30px;
+}
+
+.editable-sidebar-main > .editable-block,
+.editable-sidebar-side > .editable-block {
+  grid-column: auto;
+}
+
+.editable-canvas.template-resume-photo-sidebar .editable-page {
+  padding: 50px 52px 64px;
+}
+
+.editable-canvas.template-resume-photo-sidebar .editable-sidebar-header .profile-editor-head {
+  grid-template-columns: minmax(0, 1fr) 72px;
+}
+
+.editable-canvas.template-resume-photo-sidebar
+  .editable-sidebar-header
+  .profile-image-control {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.editable-canvas.template-resume-photo-sidebar
+  .editable-sidebar-header
+  .profile-editor-identity {
+  grid-column: 1;
+  grid-row: 1;
+}
+
 .editable-canvas-paged .page-break-block {
   margin-top: 0;
 }
@@ -3694,6 +3746,118 @@ body,
     0 1px 2px rgba(0, 0, 0, 0.12),
     0 8px 24px rgba(0, 0, 0, 0.1);
   break-inside: avoid;
+}
+
+.resume-sidebar-layout {
+  display: grid;
+  gap: 48px;
+}
+
+.resume-sidebar-header {
+  display: grid;
+}
+
+.resume-sidebar-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 42px;
+}
+
+.resume-sidebar-main,
+.resume-sidebar-side {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: 38px;
+}
+
+.resume-sidebar-main > .resume-block,
+.resume-sidebar-side > .resume-block {
+  grid-column: auto;
+}
+
+.template-resume-photo-sidebar .resume-page {
+  padding: 54px 58px 66px;
+}
+
+.template-resume-photo-sidebar .resume-profile-right-photo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 190px;
+  align-items: start;
+  gap: 42px;
+  padding-bottom: 0;
+}
+
+.template-resume-photo-sidebar .resume-profile-right-photo .resume-profile-content {
+  align-self: start;
+  padding-top: 4px;
+}
+
+.template-resume-photo-sidebar .resume-profile-aside {
+  display: grid;
+  width: 190px;
+  justify-items: end;
+  gap: 13px;
+}
+
+.template-resume-photo-sidebar .resume-profile-aside .resume-profile-photo {
+  width: 112px;
+  height: 112px;
+}
+
+.template-resume-photo-sidebar .resume-profile-aside .profile-contacts {
+  display: grid;
+  justify-items: end;
+  gap: 5px;
+  text-align: right;
+}
+
+.template-resume-photo-sidebar .resume-section-title {
+  margin-bottom: 22px;
+  color: #aeb3b9;
+  letter-spacing: -0.02em;
+}
+
+.template-resume-photo-sidebar .credential-list {
+  gap: 30px;
+}
+
+.template-resume-photo-sidebar .credential-item {
+  gap: 12px;
+}
+
+.template-resume-photo-sidebar .credential-main {
+  gap: 8px;
+}
+
+.template-resume-photo-sidebar .credential-description,
+.template-resume-photo-sidebar .simple-list p,
+.template-resume-photo-sidebar .language-row span {
+  color: #676c72;
+}
+
+.template-preview-resume-photo-sidebar {
+  background: #eef0f2;
+}
+
+.template-preview-resume-photo-sidebar .template-preview-paper {
+  display: grid;
+  grid-template-columns: 1.35fr 0.8fr;
+  grid-template-rows: 14px repeat(4, 4px);
+  gap: 5px 7px;
+  transform: none;
+}
+
+.template-preview-resume-photo-sidebar .template-preview-paper::after {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  width: 13px;
+  height: 13px;
+  justify-self: end;
+  border-radius: 2px;
+  background: #c8cdd3;
+  content: "";
 }
 
 .resume-paper.template-resume-web:not(.resume-paper-print) {
@@ -3861,6 +4025,26 @@ body,
     grid-template-columns: 1fr;
     max-width: none;
     justify-content: flex-start;
+  }
+
+  .resume-sidebar-columns,
+  .editable-sidebar-columns {
+    grid-template-columns: 1fr;
+  }
+
+  .template-resume-photo-sidebar .resume-profile-right-photo {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .template-resume-photo-sidebar .resume-profile-aside {
+    width: 100%;
+    justify-items: start;
+  }
+
+  .template-resume-photo-sidebar .resume-profile-aside .profile-contacts {
+    justify-items: start;
+    text-align: left;
   }
 
   .timeline-head {

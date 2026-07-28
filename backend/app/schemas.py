@@ -22,6 +22,7 @@ BlockType = Literal[
 TemplateId = Literal[
     "resume-one-page",
     "resume-two-page",
+    "resume-photo-sidebar",
     "resume-web",
     "portfolio",
     "cover-letter",

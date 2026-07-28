@@ -27,6 +27,12 @@ export const templateOptions: TemplateOption[] = [
     surface: "print",
   },
   {
+    id: "resume-photo-sidebar",
+    title: "사진형 2열 이력서",
+    defaultTitle: "사진형 2열 이력서",
+    surface: "print",
+  },
+  {
     id: "resume-web",
     title: "웹용 긴 이력서",
     defaultTitle: "웹용 긴 이력서",
@@ -293,6 +299,101 @@ function twoPageResume(): ResumeDocument {
   ]);
 }
 
+function photoSidebarResume(): ResumeDocument {
+  return baseDocument(
+    "resume-photo-sidebar",
+    [
+      block("profile", 0, {
+        name: "이름",
+        email: "name@example.com",
+        phone: "010-0000-0000",
+        location: "서울, 대한민국",
+        imageDataUrl: "",
+        imageFit: "cover",
+        imagePositionX: 50,
+        imagePositionY: 50,
+        imageZoom: 100,
+        contactVisibility: { email: true, phone: true, location: true },
+        layout: "right-photo",
+      }),
+      block("experience", 1, {
+        title: "경력",
+        layoutColumn: "main",
+        items: [
+          {
+            id: id(),
+            company: "회사명",
+            role: "담당 직무",
+            position: "직책",
+            employmentType: "",
+            startDate: "YYYY.MM",
+            endDate: "현재",
+            description:
+              "담당한 역할과 해결한 문제, 결과를 간결하게 작성하세요. 주요 성과는 수치와 함께 정리하면 좋습니다.",
+            imageDataUrl: "",
+          },
+          {
+            id: id(),
+            company: "이전 회사명",
+            role: "담당 직무",
+            position: "직책",
+            employmentType: "",
+            startDate: "YYYY.MM",
+            endDate: "YYYY.MM",
+            description: "핵심 업무와 기여한 결과를 2~3문장으로 작성하세요.",
+            imageDataUrl: "",
+          },
+        ],
+      }),
+      block("education", 2, {
+        title: "학력",
+        layoutColumn: "sidebar",
+        items: [
+          {
+            id: id(),
+            school: "학교명",
+            major: "전공",
+            degree: "학위",
+            period: "YYYY - YYYY",
+            status: "졸업",
+            description: "관련 연구, 수업 또는 활동",
+            imageDataUrl: "",
+          },
+        ],
+      }),
+      block("award", 3, {
+        title: "수상·자격",
+        layoutColumn: "sidebar",
+        items: [
+          {
+            id: id(),
+            name: "수상 또는 자격명",
+            date: "YYYY",
+            description: "성과나 취득 배경을 간단히 작성하세요.",
+          },
+        ],
+      }),
+      block("skills", 4, {
+        title: "스킬",
+        layoutColumn: "sidebar",
+        items: ["핵심 기술", "협업 도구", "업무 역량"],
+      }),
+      block("language", 5, {
+        title: "언어",
+        layoutColumn: "sidebar",
+        items: [{ id: id(), language: "영어", level: "업무 회화" }],
+      }),
+      block("links", 6, {
+        title: "링크",
+        layoutColumn: "sidebar",
+        display: "list",
+        items: [linkItem("GitHub"), linkItem("포트폴리오")],
+      }),
+    ],
+    "normal",
+  );
+}
+
 function webResume(): ResumeDocument {
   const document = twoPageResume();
   return {
@@ -400,6 +501,8 @@ export function createDocumentFromTemplate(template: TemplateId): ResumeDocument
       return onePageResume();
     case "resume-two-page":
       return twoPageResume();
+    case "resume-photo-sidebar":
+      return photoSidebarResume();
     case "resume-web":
       return webResume();
     case "portfolio":

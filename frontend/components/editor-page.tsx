@@ -59,6 +59,7 @@ function SortableBlock({
   onMove,
   onWidth,
   onBreak,
+  columnLayout,
 }: {
   block: ResumeBlock;
   onChange: (block: ResumeBlock) => void;
@@ -67,6 +68,7 @@ function SortableBlock({
   onMove: (direction: -1 | 1) => void;
   onWidth: () => void;
   onBreak: () => void;
+  columnLayout: boolean;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: block.id,
@@ -164,9 +166,27 @@ function SortableBlock({
           <button type="button" onClick={() => onMove(1)} aria-label="아래로 이동">
             <ArrowDown size={14} />
           </button>
-          <button type="button" onClick={onWidth} aria-label="블록 너비 변경">
-            {block.width === "full" ? <Columns2 size={14} /> : <Rows3 size={14} />}
-          </button>
+          {(!columnLayout || block.type !== "profile") && (
+            <button
+              type="button"
+              onClick={onWidth}
+              aria-label={
+                columnLayout
+                  ? block.data.layoutColumn === "sidebar"
+                    ? "왼쪽 열로 이동"
+                    : "오른쪽 열로 이동"
+                  : "블록 너비 변경"
+              }
+            >
+              {columnLayout ? (
+                <Columns2 size={14} />
+              ) : block.width === "full" ? (
+                <Columns2 size={14} />
+              ) : (
+                <Rows3 size={14} />
+              )}
+            </button>
+          )}
           <button
             type="button"
             onClick={onBreak}
@@ -413,6 +433,7 @@ export function EditorPage() {
     [document],
   );
   const isPrintTemplate = document ? document.template !== "resume-web" : false;
+  const isPhotoSidebarTemplate = document?.template === "resume-photo-sidebar";
   const editablePages = useMemo(
     () => (isPrintTemplate ? paginateBlocks(orderedBlocks) : []),
     [isPrintTemplate, orderedBlocks],
@@ -538,7 +559,7 @@ export function EditorPage() {
             >
               {(isPrintTemplate ? editablePages : [orderedBlocks]).map(
                 (pageBlocks, pageIndex) => {
-                  const content = pageBlocks.map((block) => (
+                  const renderEditableBlock = (block: ResumeBlock) => (
                     <SortableBlock
                       key={block.id}
                       block={block}
@@ -546,20 +567,35 @@ export function EditorPage() {
                       onDelete={() => removeBlock(block)}
                       onDuplicate={() => duplicateBlock(block)}
                       onMove={(direction) => moveBlock(block, direction)}
-                      onWidth={() =>
+                      onWidth={() => {
+                        if (isPhotoSidebarTemplate && block.type !== "profile") {
+                          updateBlock(
+                            {
+                              ...block,
+                              data: {
+                                ...block.data,
+                                layoutColumn:
+                                  block.data.layoutColumn === "sidebar" ? "main" : "sidebar",
+                              },
+                            },
+                            true,
+                          );
+                          return;
+                        }
                         updateBlock(
                           { ...block, width: block.width === "full" ? "half" : "full" },
                           true,
-                        )
-                      }
+                        );
+                      }}
                       onBreak={() =>
                         updateBlock(
                           { ...block, print: { breakBefore: !block.print.breakBefore } },
                           true,
                         )
                       }
+                      columnLayout={isPhotoSidebarTemplate}
                     />
-                  ));
+                  );
 
                   return isPrintTemplate ? (
                     <div
@@ -567,10 +603,42 @@ export function EditorPage() {
                       key={pageBlocks[0]?.id ?? `page-${pageIndex}`}
                       aria-label={`A4 ${pageIndex + 1}페이지`}
                     >
-                      {content}
+                      {isPhotoSidebarTemplate ? (
+                        <div className="editable-sidebar-layout">
+                          {pageBlocks.some((block) => block.type === "profile") && (
+                            <div className="editable-sidebar-header">
+                              {pageBlocks
+                                .filter((block) => block.type === "profile")
+                                .map(renderEditableBlock)}
+                            </div>
+                          )}
+                          <div className="editable-sidebar-columns">
+                            <div className="editable-sidebar-main">
+                              {pageBlocks
+                                .filter(
+                                  (block) =>
+                                    block.type !== "profile" &&
+                                    block.data.layoutColumn !== "sidebar",
+                                )
+                                .map(renderEditableBlock)}
+                            </div>
+                            <div className="editable-sidebar-side">
+                              {pageBlocks
+                                .filter(
+                                  (block) =>
+                                    block.type !== "profile" &&
+                                    block.data.layoutColumn === "sidebar",
+                                )
+                                .map(renderEditableBlock)}
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        pageBlocks.map(renderEditableBlock)
+                      )}
                     </div>
                   ) : (
-                    content
+                    pageBlocks.map(renderEditableBlock)
                   );
                 },
               )}
