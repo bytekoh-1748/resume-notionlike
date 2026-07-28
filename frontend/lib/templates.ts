@@ -85,6 +85,7 @@ const profile = (order: number) =>
     imagePositionX: 50,
     imagePositionY: 50,
     imageZoom: 100,
+    imagePlacement: "left",
     contactVisibility: { email: true, phone: true, location: true },
   });
 
@@ -313,6 +314,7 @@ function photoSidebarResume(): ResumeDocument {
         imagePositionX: 50,
         imagePositionY: 50,
         imageZoom: 100,
+        imagePlacement: "right",
         contactVisibility: { email: true, phone: true, location: true },
         layout: "right-photo",
       }),

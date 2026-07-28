@@ -124,8 +124,8 @@ function ProjectItems({ entries }: { entries: Item[] }) {
         const stack = text(entry.stack);
         const projectUrl = text(entry.url);
         const evidenceUrl = text(entry.evidenceUrl);
-        const hasHeading = Boolean(projectName || description);
-        const hasMeta = Boolean(period || role || stack || projectUrl || evidenceUrl);
+        const hasHeading = Boolean(projectName || description || period);
+        const hasMeta = Boolean(role || stack || projectUrl || evidenceUrl);
         const hasAchievements = achievements.length > 0;
 
         if (!hasHeading && !hasMeta && !hasAchievements) return null;
@@ -134,7 +134,12 @@ function ProjectItems({ entries }: { entries: Item[] }) {
           <article className="project-item" key={text(entry.id) || String(index)}>
             {hasHeading && (
               <div className="project-heading">
-                {projectName && <h3>{projectName}</h3>}
+                {(projectName || period) && (
+                  <div className="project-title-row">
+                    {projectName && <h3>{projectName}</h3>}
+                    {period && <time>{period}</time>}
+                  </div>
+                )}
                 {description && <p className="resume-description">{description}</p>}
               </div>
             )}
@@ -144,7 +149,6 @@ function ProjectItems({ entries }: { entries: Item[] }) {
               >
                 {hasMeta && (
                   <aside className="project-meta">
-                    {period && <time>{period}</time>}
                     {role && <strong>{role}</strong>}
                     {stack && <span>{stack}</span>}
                     {(projectUrl || evidenceUrl) && (
@@ -261,6 +265,11 @@ function ResumeBlockView({ block }: { block: ResumeBlock }) {
     const imagePositionX = numeric(data.imagePositionX, 50);
     const imagePositionY = numeric(data.imagePositionY, 50);
     const imageZoom = numeric(data.imageZoom, 100);
+    const profileImagePlacement =
+      data.imagePlacement === "right" ||
+      (data.imagePlacement !== "left" && data.layout === "right-photo")
+        ? "right"
+        : "left";
     const profileImageStyle = {
       objectFit: imageFit,
       objectPosition: `${imagePositionX}% ${imagePositionY}%`,
@@ -274,7 +283,8 @@ function ResumeBlockView({ block }: { block: ResumeBlock }) {
     ].filter((contact) => contact.value && contactIsVisible(data, contact.key));
     const hasIdentity = Boolean(name);
     const hasContent = hasIdentity || contacts.length > 0;
-    const rightPhotoLayout = data.layout === "right-photo";
+    const rightPhotoLayout =
+      data.layout === "right-photo" && profileImagePlacement === "right";
 
     if (rightPhotoLayout) {
       return (
@@ -320,7 +330,7 @@ function ResumeBlockView({ block }: { block: ResumeBlock }) {
       <section
         className={`resume-profile ${profileImage ? "has-photo" : ""} ${
           profileImage && !hasContent ? "photo-only" : ""
-        }`}
+        } ${profileImage && profileImagePlacement === "right" ? "photo-right" : ""}`}
       >
         {profileImage && (
           <div className="resume-profile-photo">

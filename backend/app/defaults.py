@@ -41,6 +41,7 @@ def default_document() -> dict:
                     "imagePositionX": 50,
                     "imagePositionY": 50,
                     "imageZoom": 100,
+                    "imagePlacement": "left",
                     "contactVisibility": {
                         "email": True,
                         "phone": True,

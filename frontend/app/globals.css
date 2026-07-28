@@ -1132,6 +1132,20 @@ select:focus-visible,
   gap: 14px;
 }
 
+.profile-editor-head.photo-right {
+  grid-template-columns: minmax(0, 1fr) 72px;
+}
+
+.profile-editor-head.photo-right .profile-image-control {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.profile-editor-head.photo-right .profile-editor-identity {
+  grid-column: 1;
+  grid-row: 1;
+}
+
 .profile-editor-identity {
   display: grid;
   gap: 6px;
@@ -1151,8 +1165,10 @@ select:focus-visible,
   overflow: hidden;
   border: 1px dashed #cbd3de;
   border-radius: 10px;
+  padding: 0;
   background: #f1f3f6;
   color: #8b95a4;
+  font: inherit;
   cursor: pointer;
 }
 
@@ -1165,6 +1181,11 @@ select:focus-visible,
 .profile-image-picker.has-image {
   border-style: solid;
   background: #fff;
+}
+
+.profile-image-picker.has-image.selected {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 14%, transparent);
 }
 
 .profile-image-picker img {
@@ -1181,38 +1202,102 @@ select:focus-visible,
   font-weight: 700;
 }
 
+.profile-image-actions {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #dce2ea;
+  border-radius: 8px;
+  padding: 8px;
+  background: #f8fafc;
+}
+
+.profile-image-actions-label {
+  color: #667085;
+  font-size: 9px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.profile-image-placement {
+  display: inline-flex;
+  overflow: hidden;
+  border: 1px solid #cfd6df;
+  border-radius: 6px;
+}
+
+.profile-image-placement button,
+.profile-image-replace,
+.profile-image-adjust-open,
 .profile-image-remove {
   display: inline-flex;
+  min-height: 28px;
   align-items: center;
-  gap: 3px;
+  justify-content: center;
+  gap: 4px;
   border: 0;
-  padding: 2px 4px;
-  background: transparent;
-  color: #8d96a3;
-  font-size: 8px;
+  border-radius: 6px;
+  padding: 0 8px;
+  background: #fff;
+  color: #475467;
+  font-size: 9px;
   font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
   cursor: pointer;
+}
+
+.profile-image-placement button {
+  min-width: 42px;
+  border-radius: 0;
+  background: #fff;
+}
+
+.profile-image-placement button + button {
+  border-left: 1px solid #cfd6df;
+}
+
+.profile-image-placement button.active {
+  background: var(--blue);
+  color: #fff;
+}
+
+.profile-image-replace,
+.profile-image-adjust-open,
+.profile-image-remove {
+  border: 1px solid #d7dde5;
+}
+
+.profile-image-replace:hover,
+.profile-image-adjust-open:hover {
+  border-color: var(--blue);
+  color: var(--blue);
 }
 
 .profile-image-remove:hover {
+  border-color: color-mix(in srgb, var(--danger) 35%, #d7dde5);
   color: var(--danger);
 }
 
-.profile-image-actions {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
+.profile-image-actions-close {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  margin-left: auto;
+  place-items: center;
+  border: 0;
+  border-radius: 6px;
+  padding: 0;
+  background: transparent;
+  color: #98a2b3;
+  cursor: pointer;
 }
 
-.profile-image-adjust-open {
-  border: 0;
-  padding: 2px 0;
-  background: transparent;
-  color: var(--blue);
-  font-size: 8px;
-  font-weight: 700;
-  cursor: pointer;
+.profile-image-actions-close:hover {
+  background: #eef2f6;
+  color: #475467;
 }
 
 .profile-name-input,
@@ -3423,8 +3508,30 @@ body,
   gap: 16px;
 }
 
+.resume-profile.has-photo.photo-right {
+  grid-template-columns: minmax(0, 1fr) 86px;
+}
+
+.resume-profile.has-photo.photo-right .resume-profile-photo {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.resume-profile.has-photo.photo-right .resume-profile-content {
+  grid-column: 1;
+  grid-row: 1;
+}
+
 .resume-profile.has-photo.photo-only {
   grid-template-columns: 86px;
+}
+
+.resume-profile.has-photo.photo-only.photo-right {
+  justify-content: end;
+}
+
+.resume-profile.has-photo.photo-only.photo-right .resume-profile-photo {
+  grid-column: 1;
 }
 
 .resume-profile-photo {
@@ -3436,7 +3543,7 @@ body,
 
 .resume-profile-content {
   align-content: start;
-  gap: 6px;
+  gap: 12px;
   padding-top: 0;
 }
 
@@ -3462,7 +3569,15 @@ body,
 }
 
 .resume-block-profile + .resume-block-links {
-  margin-top: -18px;
+  margin-top: -24px;
+}
+
+.resume-block-profile:has(.resume-profile.has-photo) + .resume-block-links {
+  margin-top: -32px;
+}
+
+.resume-block-profile:has(.resume-profile.has-photo:not(.photo-right)) + .resume-block-links {
+  padding-left: 102px;
 }
 
 .resume-block-profile + .resume-block-summary,
@@ -3497,13 +3612,32 @@ body,
   gap: 7px;
 }
 
+.project-title-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 16px;
+}
+
 .project-heading h3 {
+  min-width: 0;
   margin: 0;
   color: #1a1a1a;
   font-size: 17px;
   font-weight: 760;
   letter-spacing: -0.025em;
   line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.project-title-row time {
+  grid-column: 2;
+  justify-self: end;
+  color: #1a1a1a;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.35;
+  white-space: nowrap;
 }
 
 .project-body {
@@ -3559,24 +3693,25 @@ body,
 }
 
 .skill-list {
-  gap: 7px 0;
+  gap: 6px;
 }
 
 .skill-list span {
   display: inline-flex;
   align-items: center;
-  border: 0;
-  border-radius: 0;
-  padding: 0;
-  color: #1a1a1a;
+  border: 1px solid color-mix(in srgb, var(--resume-accent) 24%, #dfe3e8);
+  border-radius: 6px;
+  padding: 5px 9px;
+  background: #fff;
+  color: #263244;
   font-size: 12px;
   font-weight: 650;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .skill-list span:not(:last-child)::after {
-  margin: 0 10px;
-  color: #92969b;
-  content: "·";
+  content: none;
 }
 
 .draft-preview-toolbar {
@@ -3678,24 +3813,6 @@ body,
 
 .editable-canvas.template-resume-photo-sidebar .editable-page {
   padding: 50px 52px 64px;
-}
-
-.editable-canvas.template-resume-photo-sidebar .editable-sidebar-header .profile-editor-head {
-  grid-template-columns: minmax(0, 1fr) 72px;
-}
-
-.editable-canvas.template-resume-photo-sidebar
-  .editable-sidebar-header
-  .profile-image-control {
-  grid-column: 2;
-  grid-row: 1;
-}
-
-.editable-canvas.template-resume-photo-sidebar
-  .editable-sidebar-header
-  .profile-editor-identity {
-  grid-column: 1;
-  grid-row: 1;
 }
 
 .editable-canvas-paged .page-break-block {
@@ -4006,6 +4123,10 @@ body,
   .resume-profile.has-photo {
     grid-template-columns: 58px minmax(0, 1fr);
     gap: 14px;
+  }
+
+  .resume-profile.has-photo.photo-right {
+    grid-template-columns: minmax(0, 1fr) 58px;
   }
 
   .resume-profile.has-photo.photo-only {

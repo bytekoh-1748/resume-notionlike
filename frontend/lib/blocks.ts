@@ -46,6 +46,7 @@ export function createBlock(type: BlockType, order: number): ResumeBlock {
           imagePositionX: 50,
           imagePositionY: 50,
           imageZoom: 100,
+          imagePlacement: "left",
           contactVisibility: { email: true, phone: true, location: true },
         },
       };

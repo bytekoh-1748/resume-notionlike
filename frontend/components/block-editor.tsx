@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { type ChangeEvent, useEffect, useState } from "react";
 import {
   BriefcaseBusiness,
   GraduationCap,
@@ -245,6 +245,7 @@ export function BlockEditor({
   const uuid = () => crypto.randomUUID();
   const [imageErrors, setImageErrors] = useState<Record<string, string>>({});
   const [profileImageAdjustmentOpen, setProfileImageAdjustmentOpen] = useState(false);
+  const [profileImageSelected, setProfileImageSelected] = useState(false);
   const setImageError = (itemId: string, message: string) =>
     setImageErrors((current) => ({ ...current, [itemId]: message }));
 
@@ -288,80 +289,76 @@ export function BlockEditor({
     const profileImagePositionX = numericValue(data, "imagePositionX", 50);
     const profileImagePositionY = numericValue(data, "imagePositionY", 50);
     const profileImageZoom = numericValue(data, "imageZoom", 100);
+    const profileImagePlacement =
+      data.imagePlacement === "right" ||
+      (data.imagePlacement !== "left" && data.layout === "right-photo")
+        ? "right"
+        : "left";
     const profileImageStyle = {
       objectFit: profileImageFit,
       objectPosition: `${profileImagePositionX}% ${profileImagePositionY}%`,
       transform: `scale(${profileImageZoom / 100})`,
       transformOrigin: `${profileImagePositionX}% ${profileImagePositionY}%`,
     } as const;
+    const handleProfileImageChange = async (event: ChangeEvent<HTMLInputElement>) => {
+      const input = event.currentTarget;
+      const file = input.files?.[0];
+      if (!file) return;
+      setImageError("profile", "");
+      try {
+        const nextImage = await optimizeImage(file);
+        onData({
+          ...data,
+          imageDataUrl: nextImage,
+          imageFit: "cover",
+          imagePositionX: 50,
+          imagePositionY: 50,
+          imageZoom: 100,
+          imagePlacement: profileImagePlacement,
+        });
+        setProfileImageSelected(true);
+        setProfileImageAdjustmentOpen(true);
+      } catch (error) {
+        setImageError(
+          "profile",
+          error instanceof Error ? error.message : "이미지를 처리하지 못했습니다.",
+        );
+      } finally {
+        input.value = "";
+      }
+    };
 
     return (
       <div className="profile-editor">
-        <div className="profile-editor-head">
+        <div className={`profile-editor-head photo-${profileImagePlacement}`}>
           <div className="profile-image-control">
-            <label className={`profile-image-picker ${profileImage ? "has-image" : ""}`}>
-              {profileImage ? (
-                // eslint-disable-next-line @next/next/no-img-element
+            {profileImage ? (
+              <button
+                type="button"
+                className={`profile-image-picker has-image ${
+                  profileImageSelected ? "selected" : ""
+                }`}
+                onClick={() => setProfileImageSelected((selected) => !selected)}
+                aria-label="프로필 사진 선택"
+                aria-pressed={profileImageSelected}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={profileImage} alt="프로필 사진" style={profileImageStyle} />
-              ) : (
+              </button>
+            ) : (
+              <label className="profile-image-picker">
                 <span>
                   <ImagePlus size={19} />
                   사진
                 </span>
-              )}
-              <input
-                className="visually-hidden-file"
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                aria-label="프로필 사진 추가 또는 교체"
-                onChange={async (event) => {
-                  const input = event.currentTarget;
-                  const file = input.files?.[0];
-                  if (!file) return;
-                  setImageError("profile", "");
-                  try {
-                    const nextImage = await optimizeImage(file);
-                    onData({
-                      ...data,
-                      imageDataUrl: nextImage,
-                      imageFit: "cover",
-                      imagePositionX: 50,
-                      imagePositionY: 50,
-                      imageZoom: 100,
-                    });
-                    setProfileImageAdjustmentOpen(true);
-                  } catch (error) {
-                    setImageError(
-                      "profile",
-                      error instanceof Error ? error.message : "이미지를 처리하지 못했습니다.",
-                    );
-                  } finally {
-                    input.value = "";
-                  }
-                }}
-              />
-            </label>
-            {profileImage && (
-              <div className="profile-image-actions">
-                <button
-                  type="button"
-                  className="profile-image-adjust-open"
-                  onClick={() => setProfileImageAdjustmentOpen(true)}
-                >
-                  사진 조정
-                </button>
-                <button
-                  type="button"
-                  className="profile-image-remove"
-                  onClick={() => {
-                    onData({ ...data, imageDataUrl: "" });
-                    setProfileImageAdjustmentOpen(false);
-                    setImageError("profile", "");
-                  }}
-                >
-                  <X size={12} /> 사진 삭제
-                </button>
-              </div>
+                <input
+                  className="visually-hidden-file"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  aria-label="프로필 사진 추가"
+                  onChange={handleProfileImageChange}
+                />
+              </label>
             )}
           </div>
           <div className="profile-editor-identity">
@@ -379,6 +376,66 @@ export function BlockEditor({
             )}
           </div>
         </div>
+        {profileImage && profileImageSelected && (
+          <div className="profile-image-actions" aria-label="프로필 사진 옵션">
+            <span className="profile-image-actions-label">사진 위치</span>
+            <div className="profile-image-placement" role="group" aria-label="프로필 사진 위치">
+              <button
+                type="button"
+                className={profileImagePlacement === "left" ? "active" : ""}
+                onClick={() => onData({ ...data, imagePlacement: "left" })}
+                aria-pressed={profileImagePlacement === "left"}
+              >
+                왼쪽
+              </button>
+              <button
+                type="button"
+                className={profileImagePlacement === "right" ? "active" : ""}
+                onClick={() => onData({ ...data, imagePlacement: "right" })}
+                aria-pressed={profileImagePlacement === "right"}
+              >
+                오른쪽
+              </button>
+            </div>
+            <label className="profile-image-replace">
+              <ImagePlus size={13} /> 사진 교체
+              <input
+                className="visually-hidden-file"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                aria-label="프로필 사진 교체"
+                onChange={handleProfileImageChange}
+              />
+            </label>
+            <button
+              type="button"
+              className="profile-image-adjust-open"
+              onClick={() => setProfileImageAdjustmentOpen(true)}
+            >
+              사진 조정
+            </button>
+            <button
+              type="button"
+              className="profile-image-remove"
+              onClick={() => {
+                onData({ ...data, imageDataUrl: "" });
+                setProfileImageSelected(false);
+                setProfileImageAdjustmentOpen(false);
+                setImageError("profile", "");
+              }}
+            >
+              <X size={12} /> 사진 삭제
+            </button>
+            <button
+              type="button"
+              className="profile-image-actions-close"
+              onClick={() => setProfileImageSelected(false)}
+              aria-label="프로필 사진 옵션 닫기"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        )}
         {profileImage && profileImageAdjustmentOpen && (
           <div
             className="profile-image-adjustment-backdrop"
