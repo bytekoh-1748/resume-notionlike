@@ -21,6 +21,7 @@ export type TiptapDocument = {
 export type TemplateId =
   | "resume-one-page"
   | "resume-two-page"
+  | "resume-web"
   | "portfolio"
   | "cover-letter";
 

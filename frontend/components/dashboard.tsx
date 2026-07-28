@@ -24,6 +24,7 @@ import type { Resume, TemplateId } from "../lib/types";
 
 function TemplateIcon({ template }: { template: TemplateId }) {
   if (template === "resume-two-page") return <Files size={22} />;
+  if (template === "resume-web") return <FileText size={22} />;
   if (template === "portfolio") return <BookOpenText size={22} />;
   if (template === "cover-letter") return <ScrollText size={22} />;
   return <FileText size={22} />;

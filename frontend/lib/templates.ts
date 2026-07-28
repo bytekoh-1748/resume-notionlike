@@ -24,6 +24,11 @@ export const templateOptions: TemplateOption[] = [
     defaultTitle: "2장 이력서",
   },
   {
+    id: "resume-web",
+    title: "웹용 긴 이력서",
+    defaultTitle: "웹용 긴 이력서",
+  },
+  {
     id: "portfolio",
     title: "기술 포트폴리오",
     defaultTitle: "기술 포트폴리오",
@@ -273,6 +278,18 @@ function twoPageResume(): ResumeDocument {
   ]);
 }
 
+function webResume(): ResumeDocument {
+  const document = twoPageResume();
+  return {
+    ...document,
+    template: "resume-web",
+    blocks: document.blocks.map((resumeBlock) => ({
+      ...resumeBlock,
+      print: { breakBefore: false },
+    })),
+  };
+}
+
 function portfolio(): ResumeDocument {
   return baseDocument(
     "portfolio",
@@ -368,6 +385,8 @@ export function createDocumentFromTemplate(template: TemplateId): ResumeDocument
       return onePageResume();
     case "resume-two-page":
       return twoPageResume();
+    case "resume-web":
+      return webResume();
     case "portfolio":
       return portfolio();
     case "cover-letter":

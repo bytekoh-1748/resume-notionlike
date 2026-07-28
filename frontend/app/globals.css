@@ -2011,9 +2011,8 @@ select:focus-visible,
 }
 
 .credential-meta span + span::before {
-  margin: 0 7px;
-  color: #c4c9d1;
-  content: "|";
+  margin: 0 6px;
+  content: "";
 }
 
 .credential-detail {
@@ -2854,6 +2853,406 @@ select:focus-visible,
   color: var(--blue);
 }
 
+html,
+body,
+.dashboard-shell,
+.editor-shell,
+.dashboard-header,
+.dashboard-content,
+.resume-card-preview,
+.template-modal,
+.template-preview,
+.template-preview-portfolio,
+.template-preview-cover-letter,
+.template-modal-footer,
+.editor-header,
+.block-sidebar,
+.editor-workspace,
+.editable-canvas,
+.item-editor-with-image,
+.item-image-picker,
+.profile-image-picker,
+.rich-text-toolbar,
+.public-shell,
+.public-toolbar,
+.published-index,
+.print-shell {
+  background: #fff;
+}
+
+.dashboard-header,
+.dashboard-title-row,
+.resume-card-preview,
+.template-modal-footer,
+.editor-header,
+.block-sidebar,
+.theme-panel,
+.public-toolbar {
+  border-color: transparent;
+}
+
+.template-modal {
+  width: min(1120px, 100%);
+}
+
+.template-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.template-card {
+  border-color: transparent;
+}
+
+.template-card:hover {
+  border-color: transparent;
+}
+
+.template-preview-resume-web .template-preview-paper {
+  height: 154px;
+  margin-top: 52px;
+}
+
+.editable-canvas,
+.resume-paper {
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.profile-contact-field,
+.field input,
+.field textarea {
+  border-bottom: 0;
+}
+
+.item-editor {
+  border-left: 0;
+  padding-left: 0;
+}
+
+.item-editor-list {
+  gap: 20px;
+}
+
+.item-editor-with-image {
+  border: 0;
+}
+
+.project-item,
+.timeline-item,
+.simple-list article,
+.link-list a,
+.link-placeholder,
+.link-list-inline {
+  border-color: transparent;
+}
+
+.credential-image {
+  border: 0;
+  background: #fff;
+  color: var(--resume-accent);
+}
+
+.credential-meta,
+.credential-detail,
+.credential-description,
+.project-meta,
+.project-meta time,
+.project-meta > span,
+.resume-description,
+.profile-contacts,
+.timeline-head time,
+.simple-list time,
+.simple-list p,
+.language-row span,
+.rich-text-view,
+.resume-bullet-list {
+  color: #1a1a1a;
+}
+
+.skill-list span {
+  background: #fff;
+}
+
+/* Typography and rhythm calibrated from the supplied executive resume. */
+.editable-canvas {
+  gap: 34px 22px;
+}
+
+.editable-canvas.density-compact {
+  gap: 25px 20px;
+}
+
+.editable-block {
+  padding-top: 15px;
+  padding-bottom: 15px;
+}
+
+.item-editor-list {
+  gap: 22px;
+}
+
+.field {
+  gap: 7px;
+}
+
+.field > span {
+  font-size: 10px;
+}
+
+.field input,
+.field textarea {
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.profile-role-input {
+  font-size: 13px;
+}
+
+.profile-name-input {
+  font-size: 24px;
+}
+
+.inline-section-title,
+.resume-section-title {
+  margin-bottom: 18px;
+  font-size: 16px;
+  line-height: 1.2;
+}
+
+.resume-grid {
+  gap: 34px 24px;
+}
+
+.density-compact .resume-grid {
+  gap: 25px 20px;
+}
+
+.resume-profile {
+  gap: 14px;
+}
+
+.resume-profile-content {
+  gap: 13px;
+}
+
+.resume-profile h1 {
+  font-size: 24px;
+}
+
+.resume-kicker {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.profile-contacts {
+  gap: 8px 18px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.resume-description,
+.rich-text-view,
+.resume-bullet-list {
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.timeline-list {
+  gap: 22px;
+}
+
+.timeline-head {
+  margin-bottom: 8px;
+}
+
+.timeline-head h3,
+.compact-row h3,
+.credential-main h3,
+.project-copy h3 {
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.timeline-subtitle,
+.compact-row p {
+  margin-top: 5px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.timeline-head time,
+.compact-row time,
+.simple-list time {
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.project-item {
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 24px;
+  padding: 20px 0 24px;
+}
+
+.project-meta {
+  gap: 7px;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.project-meta time,
+.project-meta strong,
+.project-meta > span,
+.project-evidence-links a {
+  font-size: 11px;
+}
+
+.project-copy h3 {
+  margin-bottom: 8px;
+}
+
+.project-copy ul {
+  gap: 5px;
+  margin-top: 9px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.credential-list {
+  gap: 22px;
+}
+
+.credential-item {
+  gap: 15px;
+}
+
+.credential-meta {
+  gap: 5px 0;
+  margin-top: 6px;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.credential-detail {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.credential-description {
+  margin-top: 8px;
+}
+
+.compact-list,
+.simple-list {
+  gap: 16px;
+}
+
+.simple-list strong {
+  font-size: 13px;
+}
+
+.simple-list p,
+.language-row span {
+  margin-top: 5px;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.skill-list {
+  gap: 7px;
+}
+
+.skill-list span {
+  padding: 5px 9px;
+  font-size: 11px;
+}
+
+.link-list {
+  gap: 9px;
+}
+
+.link-list a,
+.link-placeholder {
+  padding-bottom: 9px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.link-list-inline {
+  gap: 8px 18px;
+  padding: 9px 0;
+}
+
+.link-list-inline a,
+.link-list-inline .link-placeholder {
+  font-size: 11px;
+}
+
+.editable-canvas-paged {
+  display: grid;
+  min-height: 0;
+  grid-template-columns: 1fr;
+  gap: 48px;
+  padding: 0;
+}
+
+.editable-page {
+  display: grid;
+  width: 100%;
+  min-height: 1123px;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-auto-flow: row dense;
+  align-content: start;
+  gap: 34px 22px;
+  border-top: 4px solid var(--resume-accent);
+  padding: 52px 54px 68px;
+  background: #fff;
+}
+
+.editable-canvas-paged.density-compact .editable-page {
+  gap: 25px 20px;
+  padding-top: 41px;
+}
+
+.editable-canvas-paged .page-break-block {
+  margin-top: 0;
+}
+
+.editable-canvas-paged .page-break-block::before {
+  display: none;
+}
+
+.editable-canvas.template-resume-web {
+  width: min(980px, 100%);
+  min-height: 0;
+}
+
+.resume-paper.template-resume-two-page {
+  min-height: 0;
+  padding: 0;
+}
+
+.resume-pages {
+  display: grid;
+  gap: 48px;
+}
+
+.resume-page {
+  width: 100%;
+  min-height: 1123px;
+  border-top: 4px solid var(--resume-accent);
+  padding: 52px 60px 66px;
+  background: #fff;
+  break-inside: avoid;
+}
+
+.resume-paper.template-resume-web:not(.resume-paper-print) {
+  width: min(980px, 100%);
+  min-height: 0;
+  padding: 64px 72px;
+}
+
 @media (max-width: 900px) {
   .resume-card-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3059,11 +3458,11 @@ select:focus-visible,
   }
 
   .resume-grid {
-    gap: 4mm 6mm;
+    gap: 8mm 6mm;
   }
 
   .density-compact .resume-grid {
-    gap: 3mm 5mm;
+    gap: 6.5mm 5mm;
   }
 
   .resume-block {
@@ -3077,5 +3476,32 @@ select:focus-visible,
   .resume-block.has-page-break {
     break-before: page;
     padding-top: 13mm;
+  }
+
+  .resume-paper.template-resume-two-page {
+    width: 210mm;
+    min-height: 0;
+    padding: 0;
+  }
+
+  .resume-paper.template-resume-two-page .resume-pages {
+    display: block;
+  }
+
+  .resume-paper.template-resume-two-page .resume-page {
+    width: 210mm;
+    min-height: 297mm;
+    border-top: 0;
+    padding: 13mm 15mm;
+    break-after: page;
+    break-inside: avoid;
+  }
+
+  .resume-paper.template-resume-two-page .resume-page:last-child {
+    break-after: auto;
+  }
+
+  .resume-paper.template-resume-two-page .resume-block {
+    break-before: auto !important;
   }
 }

@@ -139,3 +139,13 @@ export function createBlock(type: BlockType, order: number): ResumeBlock {
 export function normalizeOrder(blocks: ResumeBlock[]): ResumeBlock[] {
   return blocks.map((block, order) => ({ ...block, order }));
 }
+
+export function paginateBlocks(blocks: ResumeBlock[]): ResumeBlock[][] {
+  return blocks.reduce<ResumeBlock[][]>((pages, resumeBlock) => {
+    if (pages.length === 0 || (resumeBlock.print.breakBefore && pages.at(-1)?.length)) {
+      pages.push([]);
+    }
+    pages.at(-1)?.push(resumeBlock);
+    return pages;
+  }, []);
+}

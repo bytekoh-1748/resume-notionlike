@@ -8,6 +8,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import type { ResumeBlock, ResumeDocument, TiptapDocument } from "../lib/types";
+import { paginateBlocks } from "../lib/blocks";
 import { RichTextView } from "./rich-text-view";
 
 type Data = Record<string, unknown>;
@@ -351,6 +352,19 @@ export function ResumeRenderer({
   mode?: "preview" | "public" | "print";
 }) {
   const blocks = [...document.blocks].sort((a, b) => a.order - b.order);
+  const isTwoPageTemplate = document.template === "resume-two-page";
+  const pages = isTwoPageTemplate ? paginateBlocks(blocks) : [];
+  const renderBlock = (block: ResumeBlock, ignoreBreak = false) => (
+    <div
+      key={block.id}
+      className={`resume-block resume-block-${block.width} ${!ignoreBreak && block.print.breakBefore ? "has-page-break" : ""}`}
+      style={{ breakBefore: !ignoreBreak && block.print.breakBefore ? "page" : "auto" }}
+      data-break-before={!ignoreBreak && block.print.breakBefore ? "true" : "false"}
+    >
+      <ResumeBlockView block={block} />
+    </div>
+  );
+
   return (
     <article
       className={`resume-paper resume-paper-${mode} density-${document.theme.density} template-${document.template ?? "resume-one-page"}`}
@@ -362,18 +376,21 @@ export function ResumeRenderer({
       }
       data-render-ready="true"
     >
-      <div className="resume-grid">
-        {blocks.map((block) => (
-          <div
-            key={block.id}
-            className={`resume-block resume-block-${block.width} ${block.print.breakBefore ? "has-page-break" : ""}`}
-            style={{ breakBefore: block.print.breakBefore ? "page" : "auto" }}
-            data-break-before={block.print.breakBefore ? "true" : "false"}
-          >
-            <ResumeBlockView block={block} />
-          </div>
-        ))}
-      </div>
+      {isTwoPageTemplate ? (
+        <div className="resume-pages">
+          {pages.map((pageBlocks, pageIndex) => (
+            <div className="resume-page" key={pageBlocks[0]?.id ?? `page-${pageIndex}`}>
+              <div className="resume-grid">
+                {pageBlocks.map((resumeBlock) => renderBlock(resumeBlock, true))}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="resume-grid">
+          {blocks.map((resumeBlock) => renderBlock(resumeBlock))}
+        </div>
+      )}
     </article>
   );
 }

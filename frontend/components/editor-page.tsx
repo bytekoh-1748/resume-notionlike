@@ -43,7 +43,7 @@ import {
   Unlink,
 } from "lucide-react";
 import { api, ApiError } from "../lib/api";
-import { blockLabels, createBlock, normalizeOrder } from "../lib/blocks";
+import { blockLabels, createBlock, normalizeOrder, paginateBlocks } from "../lib/blocks";
 import { useEditorStore } from "../lib/editor-store";
 import type { BlockType, ResumeBlock, ResumeDocument, SaveState } from "../lib/types";
 import { BlockEditor } from "./block-editor";
@@ -346,6 +346,10 @@ export function EditorPage() {
     () => (document ? [...document.blocks].sort((a, b) => a.order - b.order) : []),
     [document],
   );
+  const editablePages = useMemo(
+    () => (document?.template === "resume-two-page" ? paginateBlocks(orderedBlocks) : []),
+    [document?.template, orderedBlocks],
+  );
 
   if (loading) return <div className="full-page-message">문서를 준비하는 중입니다…</div>;
   if (!resume || !document) return <div className="full-page-message">{error || "문서를 찾을 수 없습니다."}</div>;
@@ -452,21 +456,46 @@ export function EditorPage() {
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
           <SortableContext items={orderedBlocks.map((block) => block.id)} strategy={rectSortingStrategy}>
             <div
-              className={`editable-canvas density-${document.theme.density}`}
+              className={`editable-canvas density-${document.theme.density} template-${document.template} ${document.template === "resume-two-page" ? "editable-canvas-paged" : ""}`}
               style={{ "--resume-accent": document.theme.accentColor } as React.CSSProperties}
             >
-              {orderedBlocks.map((block) => (
-                <SortableBlock
-                  key={block.id}
-                  block={block}
-                  onChange={(next) => updateBlock(next)}
-                  onDelete={() => removeBlock(block)}
-                  onDuplicate={() => duplicateBlock(block)}
-                  onMove={(direction) => moveBlock(block, direction)}
-                  onWidth={() => updateBlock({ ...block, width: block.width === "full" ? "half" : "full" }, true)}
-                  onBreak={() => updateBlock({ ...block, print: { breakBefore: !block.print.breakBefore } }, true)}
-                />
-              ))}
+              {(document.template === "resume-two-page" ? editablePages : [orderedBlocks]).map(
+                (pageBlocks, pageIndex) => {
+                  const content = pageBlocks.map((block) => (
+                    <SortableBlock
+                      key={block.id}
+                      block={block}
+                      onChange={(next) => updateBlock(next)}
+                      onDelete={() => removeBlock(block)}
+                      onDuplicate={() => duplicateBlock(block)}
+                      onMove={(direction) => moveBlock(block, direction)}
+                      onWidth={() =>
+                        updateBlock(
+                          { ...block, width: block.width === "full" ? "half" : "full" },
+                          true,
+                        )
+                      }
+                      onBreak={() =>
+                        updateBlock(
+                          { ...block, print: { breakBefore: !block.print.breakBefore } },
+                          true,
+                        )
+                      }
+                    />
+                  ));
+
+                  return document.template === "resume-two-page" ? (
+                    <div
+                      className="editable-page"
+                      key={pageBlocks[0]?.id ?? `page-${pageIndex}`}
+                    >
+                      {content}
+                    </div>
+                  ) : (
+                    content
+                  );
+                },
+              )}
             </div>
           </SortableContext>
         </DndContext>
