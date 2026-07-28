@@ -18,6 +18,12 @@ export type TiptapDocument = {
   content?: Array<Record<string, unknown>>;
 };
 
+export type TemplateId =
+  | "resume-one-page"
+  | "resume-two-page"
+  | "portfolio"
+  | "cover-letter";
+
 export type ResumeBlock = {
   id: string;
   type: BlockType;
@@ -29,6 +35,7 @@ export type ResumeBlock = {
 
 export type ResumeDocument = {
   schemaVersion: 1;
+  template: TemplateId;
   theme: {
     font: string;
     accentColor: string;
@@ -59,4 +66,3 @@ export type PublicResume = {
 };
 
 export type SaveState = "saved" | "dirty" | "saving" | "error" | "conflict";
-

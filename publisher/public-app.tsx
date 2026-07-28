@@ -42,7 +42,7 @@ function PublicApp() {
     return (
       <main className="public-error">
         <FileText size={30} />
-        <h1>공개된 이력서를 찾을 수 없습니다</h1>
+        <h1>공개된 문서를 찾을 수 없습니다</h1>
       </main>
     );
   }
@@ -56,7 +56,7 @@ function PublicApp() {
             <span>Blockfolio</span>
           </span>
           <h1>Published resumes</h1>
-          <p>로컬 스튜디오에서 발행한 읽기 전용 이력서입니다.</p>
+          <p>로컬 스튜디오에서 발행한 읽기 전용 문서입니다.</p>
         </header>
         <div className="published-index-list">
           {index.map((item) => (
@@ -73,7 +73,7 @@ function PublicApp() {
     );
   }
 
-  if (!resume) return <div className="full-page-message">이력서를 불러오는 중입니다…</div>;
+  if (!resume) return <div className="full-page-message">문서를 불러오는 중입니다…</div>;
 
   return (
     <main className="public-shell">
@@ -92,4 +92,3 @@ function PublicApp() {
 }
 
 createRoot(document.getElementById("root")!).render(<PublicApp />);
-

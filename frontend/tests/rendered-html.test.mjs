@@ -30,8 +30,9 @@ test("renders the Blockfolio dashboard shell", async () => {
   const html = await response.text();
   assert.match(html, /<title>Blockfolio/);
   assert.match(html, /Blockfolio/);
-  assert.match(html, /내 이력서/);
-  assert.match(html, /새 이력서/);
+  assert.match(html, /내 문서/);
+  assert.match(html, /새 문서/);
+  assert.match(html, /이력서·포트폴리오·자기소개서/);
   assert.doesNotMatch(html, /codex-preview|Your site is taking shape|react-loading-skeleton/);
 });
 
@@ -39,6 +40,5 @@ test("renders the dynamic editor route", async () => {
   const response = await render("/editor/example-id");
   assert.equal(response.status, 200);
   const html = await response.text();
-  assert.match(html, /이력서를 준비하는 중입니다/);
+  assert.match(html, /문서를 준비하는 중입니다/);
 });
-

@@ -19,44 +19,64 @@ const imageDataUrl = (entry: Item) => {
   const source = text(entry.imageDataUrl);
   return /^data:image\/(?:jpeg|png|webp);base64,/i.test(source) ? source : "";
 };
+const contactIsVisible = (data: Data, key: "email" | "phone" | "location") => {
+  const visibility =
+    data.contactVisibility && typeof data.contactVisibility === "object"
+      ? (data.contactVisibility as Record<string, unknown>)
+      : {};
+  return typeof visibility[key] === "boolean" ? Boolean(visibility[key]) : true;
+};
 
 function SectionTitle({ children }: { children: string }) {
   return children ? <h2 className="resume-section-title">{children}</h2> : null;
 }
 
-function TimelineItems({
-  entries,
-  primary,
-  secondary,
-  period,
-}: {
-  entries: Item[];
-  primary: (entry: Item) => string;
-  secondary: (entry: Item) => string;
-  period: (entry: Item) => string;
-}) {
+function ProjectItems({ entries }: { entries: Item[] }) {
   return (
-    <div className="timeline-list">
-      {entries.map((entry, index) => (
-        <article className="timeline-item" key={text(entry.id) || String(index)}>
-          <div className="timeline-dot" />
-          <div className="timeline-head">
-            <div>
-              {primary(entry) && <h3>{primary(entry)}</h3>}
-              {secondary(entry) && <p className="timeline-subtitle">{secondary(entry)}</p>}
+    <div className="project-list">
+      {entries.map((entry, index) => {
+        const achievements = text(entry.achievements)
+          .split("\n")
+          .map((item) => item.trim())
+          .filter(Boolean);
+        const projectUrl = text(entry.url);
+        const evidenceUrl = text(entry.evidenceUrl);
+
+        return (
+          <article className="project-item" key={text(entry.id) || String(index)}>
+            <aside className="project-meta">
+              {text(entry.period) && <time>{text(entry.period)}</time>}
+              {text(entry.role) && <strong>{text(entry.role)}</strong>}
+              {text(entry.stack) && <span>{text(entry.stack)}</span>}
+              <div className="project-evidence-links">
+                {projectUrl && (
+                  <a href={projectUrl} target="_blank" rel="noreferrer">
+                    프로젝트 상세
+                  </a>
+                )}
+                {evidenceUrl && (
+                  <a href={evidenceUrl} target="_blank" rel="noreferrer">
+                    코드·PR 증거
+                  </a>
+                )}
+              </div>
+            </aside>
+            <div className="project-copy">
+              {text(entry.name) && <h3>{text(entry.name)}</h3>}
+              {text(entry.description) && (
+                <p className="resume-description">{text(entry.description)}</p>
+              )}
+              {achievements.length > 0 && (
+                <ul>
+                  {achievements.map((achievement, achievementIndex) => (
+                    <li key={`${achievement}-${achievementIndex}`}>{achievement}</li>
+                  ))}
+                </ul>
+              )}
             </div>
-            {period(entry) && <time>{period(entry)}</time>}
-          </div>
-          {text(entry.description) && (
-            <p className="resume-description">{text(entry.description)}</p>
-          )}
-          {text(entry.url) && (
-            <a className="inline-link" href={text(entry.url)} target="_blank" rel="noreferrer">
-              프로젝트 보기
-            </a>
-          )}
-        </article>
-      ))}
+          </article>
+        );
+      })}
     </div>
   );
 }
@@ -128,29 +148,38 @@ function ResumeBlockView({ block }: { block: ResumeBlock }) {
   if (block.type === "profile") {
     const role = text(data.role);
     const name = text(data.name);
+    const profileImage = imageDataUrl(data);
+    const contacts = [
+      { key: "email" as const, value: text(data.email), icon: Mail },
+      { key: "phone" as const, value: text(data.phone), icon: Phone },
+      { key: "location" as const, value: text(data.location), icon: MapPin },
+    ].filter((contact) => contact.value && contactIsVisible(data, contact.key));
     return (
-      <section className="resume-profile">
-        {(role || name) && (
-          <div>
-            {role && <p className="resume-kicker">{role}</p>}
-            {name && <h1>{name}</h1>}
+      <section className={`resume-profile ${profileImage ? "has-photo" : ""}`}>
+        {profileImage && (
+          <div className="resume-profile-photo">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={profileImage} alt={`${name || "지원자"} 프로필`} />
           </div>
         )}
-        <div className="profile-contacts">
-          {text(data.email) && (
-            <span>
-              <Mail size={14} /> {text(data.email)}
-            </span>
+        <div className="resume-profile-content">
+          {(role || name) && (
+            <div className="resume-profile-heading">
+              {name && <h1>{name}</h1>}
+              {role && <p className="resume-kicker">{role}</p>}
+            </div>
           )}
-          {text(data.phone) && (
-            <span>
-              <Phone size={14} /> {text(data.phone)}
-            </span>
-          )}
-          {text(data.location) && (
-            <span>
-              <MapPin size={14} /> {text(data.location)}
-            </span>
+          {contacts.length > 0 && (
+            <div className="profile-contacts">
+              {contacts.map((contact) => {
+                const Icon = contact.icon;
+                return (
+                  <span key={contact.key}>
+                    <Icon size={11} /> {contact.value}
+                  </span>
+                );
+              })}
+            </div>
           )}
         </div>
       </section>
@@ -186,12 +215,7 @@ function ResumeBlockView({ block }: { block: ResumeBlock }) {
     return (
       <section>
         <SectionTitle>{title}</SectionTitle>
-        <TimelineItems
-          entries={items(data)}
-          primary={(entry) => text(entry.name)}
-          secondary={() => ""}
-          period={(entry) => text(entry.period)}
-        />
+        <ProjectItems entries={items(data)} />
       </section>
     );
   }
@@ -255,17 +279,30 @@ function ResumeBlockView({ block }: { block: ResumeBlock }) {
   }
 
   if (block.type === "links") {
+    const display = text(data.display) === "inline" ? "inline" : "list";
     return (
       <section>
         <SectionTitle>{title}</SectionTitle>
-        <div className="link-list">
-          {items(data).map((entry, index) => (
-            <a key={text(entry.id) || String(index)} href={text(entry.url)} target="_blank" rel="noreferrer">
-              <LinkIcon size={14} />
-              <span>{text(entry.label) || text(entry.url)}</span>
-              <small>{text(entry.url)}</small>
-            </a>
-          ))}
+        <div className={`link-list link-list-${display}`}>
+          {items(data).map((entry, index) => {
+            const url = text(entry.url);
+            const content = (
+              <>
+                <LinkIcon size={14} />
+                <span>{text(entry.label) || url}</span>
+                {url && <small>{url}</small>}
+              </>
+            );
+            return url ? (
+              <a key={text(entry.id) || String(index)} href={url} target="_blank" rel="noreferrer">
+                {content}
+              </a>
+            ) : (
+              <span className="link-placeholder" key={text(entry.id) || String(index)}>
+                {content}
+              </span>
+            );
+          })}
         </div>
       </section>
     );
@@ -316,7 +353,7 @@ export function ResumeRenderer({
   const blocks = [...document.blocks].sort((a, b) => a.order - b.order);
   return (
     <article
-      className={`resume-paper resume-paper-${mode} density-${document.theme.density}`}
+      className={`resume-paper resume-paper-${mode} density-${document.theme.density} template-${document.template ?? "resume-one-page"}`}
       style={
         {
           "--resume-accent": document.theme.accentColor,
@@ -329,8 +366,9 @@ export function ResumeRenderer({
         {blocks.map((block) => (
           <div
             key={block.id}
-            className={`resume-block resume-block-${block.width}`}
+            className={`resume-block resume-block-${block.width} ${block.print.breakBefore ? "has-page-break" : ""}`}
             style={{ breakBefore: block.print.breakBefore ? "page" : "auto" }}
+            data-break-before={block.print.breakBefore ? "true" : "false"}
           >
             <ResumeBlockView block={block} />
           </div>

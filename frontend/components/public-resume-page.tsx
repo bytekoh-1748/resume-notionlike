@@ -24,13 +24,13 @@ export function PublicResumePage({ slug }: { slug: string }) {
     return (
       <main className="public-error">
         <FileQuestion size={32} />
-        <h1>공개된 이력서를 찾을 수 없습니다</h1>
-        <p>주소가 정확한지 확인하거나 이력서를 다시 발행해 주세요.</p>
-        <Link href="/">이력서 목록으로</Link>
+        <h1>공개된 문서를 찾을 수 없습니다</h1>
+        <p>주소가 정확한지 확인하거나 문서를 다시 발행해 주세요.</p>
+        <Link href="/">문서 목록으로</Link>
       </main>
     );
   }
-  if (!resume) return <div className="full-page-message">공개 이력서를 불러오는 중입니다…</div>;
+  if (!resume) return <div className="full-page-message">공개 문서를 불러오는 중입니다…</div>;
 
   const isLocal =
     typeof window !== "undefined" &&
@@ -54,4 +54,3 @@ export function PublicResumePage({ slug }: { slug: string }) {
     </main>
   );
 }
-

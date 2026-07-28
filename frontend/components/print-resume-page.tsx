@@ -16,7 +16,7 @@ export function PrintResumePage({ id }: { id: string }) {
       .catch(() => setError(true));
   }, [id]);
 
-  if (error) return <div className="full-page-message">이력서를 불러오지 못했습니다.</div>;
+  if (error) return <div className="full-page-message">문서를 불러오지 못했습니다.</div>;
   if (!resume) return <div className="full-page-message">PDF를 준비하는 중입니다…</div>;
   return (
     <main className="print-shell">
@@ -24,4 +24,3 @@ export function PrintResumePage({ id }: { id: string }) {
     </main>
   );
 }
-

@@ -1,11 +1,15 @@
 # Blockfolio Resume Builder
 
-로컬에서 사용하는 블록형 이력서 편집기입니다. React 편집기, FastAPI API,
-PostgreSQL 저장소, Chromium PDF 생성기를 Docker Compose로 함께 실행합니다.
+로컬에서 사용하는 블록형 이력서·포트폴리오·자기소개서 편집기입니다.
+React 편집기, FastAPI API, PostgreSQL 저장소, Chromium PDF 생성기를
+Docker Compose로 함께 실행합니다.
 
 ## 포함된 기능
 
-- 여러 이력서 생성, 복제, 휴지통 삭제·복원
+- 1장/2장 이력서, 기술 포트폴리오, 자기소개서 템플릿
+- 여러 문서 생성, 복제, 휴지통 삭제·복원
+- 프로필 사진과 경력·학력 로고 추가·삭제
+- 프로젝트 상세, 코드·PR·이슈 등 증거 링크 허브
 - 구조화 블록과 Tiptap 자유 텍스트 블록의 인라인 편집
 - 드래그·키보드·위/아래 버튼 이동, 1/2열 배치, undo/redo
 - 800ms 자동 저장과 revision 기반 `409` 충돌 방지
@@ -34,7 +38,7 @@ PostgreSQL 데이터는 `resume_pgdata` named volume에 저장되어 컨테이�
 
 ## 발행본 만들기
 
-편집기에서 이력서를 발행한 다음 아래 명령으로 정적 공개본과 PDF를 생성합니다.
+편집기에서 문서를 발행한 다음 아래 명령으로 정적 공개본과 PDF를 생성합니다.
 
 ```bash
 docker compose --profile publish run --rm publisher

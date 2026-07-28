@@ -34,6 +34,16 @@ def test_resume_lifecycle_and_revision_conflict():
     resume = created.json()
     assert resume["revision"] == 1
     assert len(resume["draft_document"]["blocks"]) >= 5
+    assert resume["draft_document"]["template"] == "resume-one-page"
+    assert resume["draft_document"]["theme"]["accentColor"] == "#f97316"
+    profile = next(
+        block for block in resume["draft_document"]["blocks"] if block["type"] == "profile"
+    )
+    assert profile["data"]["contactVisibility"] == {
+        "email": True,
+        "phone": True,
+        "location": True,
+    }
     experience = next(
         block for block in resume["draft_document"]["blocks"] if block["type"] == "experience"
     )
@@ -85,6 +95,44 @@ def test_resume_lifecycle_and_revision_conflict():
     public = client.get(f"/api/public/resumes/{slug}")
     assert public.status_code == 200
     assert public.json()["title"] == "수정한 이력서"
+
+
+def test_create_document_with_explicit_template():
+    document = {
+        "schemaVersion": 1,
+        "template": "resume-two-page",
+        "theme": {
+            "font": "Pretendard",
+            "accentColor": "#f97316",
+            "density": "compact",
+        },
+        "blocks": [
+            {
+                "id": "profile-template-test",
+                "type": "profile",
+                "order": 0,
+                "width": "full",
+                "print": {"breakBefore": False},
+                "data": {"name": "템플릿 테스트"},
+            },
+            {
+                "id": "page-two-template-test",
+                "type": "experience",
+                "order": 1,
+                "width": "full",
+                "print": {"breakBefore": True},
+                "data": {"title": "경력", "items": []},
+            },
+        ],
+    }
+    created = client.post(
+        "/api/resumes",
+        json={"title": "2장 템플릿 테스트", "document": document},
+    )
+    assert created.status_code == 201
+    payload = created.json()
+    assert payload["draft_document"]["template"] == "resume-two-page"
+    assert payload["draft_document"]["blocks"][1]["print"]["breakBefore"] is True
 
 
 def test_duplicate_rekeys_blocks_and_restore():

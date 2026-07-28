@@ -45,6 +45,7 @@ import {
 import { api, ApiError } from "../lib/api";
 import { blockLabels, createBlock, normalizeOrder } from "../lib/blocks";
 import { useEditorStore } from "../lib/editor-store";
+import { getTemplateOption } from "../lib/templates";
 import type { BlockType, ResumeBlock, ResumeDocument, SaveState } from "../lib/types";
 import { BlockEditor } from "./block-editor";
 import { ResumeRenderer } from "./resume-renderer";
@@ -72,7 +73,7 @@ function SortableBlock({
   return (
     <section
       ref={setNodeRef}
-      className={`editable-block editable-block-${block.width} ${isDragging ? "dragging" : ""}`}
+      className={`editable-block editable-block-${block.width} ${block.print.breakBefore ? "page-break-block" : ""} ${isDragging ? "dragging" : ""}`}
       style={{
         transform: CSS.Transform.toString(transform),
         transition,
@@ -173,7 +174,7 @@ export function EditorPage() {
         revisionRef.current = value.revision;
         lastSavedRef.current = JSON.stringify({ title: value.title, document: value.draft_document });
       })
-      .catch(() => setError("이력서를 불러올 수 없습니다."))
+      .catch(() => setError("문서를 불러올 수 없습니다."))
       .finally(() => setLoading(false));
     return () => {
       cancelled = true;
@@ -347,8 +348,8 @@ export function EditorPage() {
     [document],
   );
 
-  if (loading) return <div className="full-page-message">이력서를 준비하는 중입니다…</div>;
-  if (!resume || !document) return <div className="full-page-message">{error || "이력서를 찾을 수 없습니다."}</div>;
+  if (loading) return <div className="full-page-message">문서를 준비하는 중입니다…</div>;
+  if (!resume || !document) return <div className="full-page-message">{error || "문서를 찾을 수 없습니다."}</div>;
 
   return (
     <main className={`editor-shell ${sidebarOpen ? "" : "sidebar-collapsed"}`}>
@@ -360,7 +361,7 @@ export function EditorPage() {
           <button className="icon-button" type="button" onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="블록 패널 열기">
             {sidebarOpen ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />}
           </button>
-          <input className="resume-title-input" value={title} onChange={(event) => setTitle(event.target.value)} aria-label="이력서 제목" />
+          <input className="resume-title-input" value={title} onChange={(event) => setTitle(event.target.value)} aria-label="문서 제목" />
         </div>
         <div className={`save-indicator save-${saveState}`}>
           {saveState === "saving" ? <LoaderCircle size={14} className="spin" /> : saveState === "saved" ? <Check size={14} /> : <Save size={14} />}
@@ -398,6 +399,11 @@ export function EditorPage() {
             <p className="eyebrow">BLOCK LIBRARY</p>
             <h2>블록 추가</h2>
             <p>필요한 섹션을 골라 캔버스에 추가하세요.</p>
+          </div>
+          <div className="current-template-card">
+            <span>현재 템플릿</span>
+            <strong>{getTemplateOption(document.template ?? "resume-one-page").title}</strong>
+            <small>{getTemplateOption(document.template ?? "resume-one-page").pageLabel}</small>
           </div>
           <div className="block-palette">
             {(Object.keys(blockLabels) as BlockType[]).map((type) => (

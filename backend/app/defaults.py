@@ -15,9 +15,10 @@ def block(block_type: str, order: int, data: dict, width: str = "full") -> dict:
 def default_document() -> dict:
     return {
         "schemaVersion": 1,
+        "template": "resume-one-page",
         "theme": {
             "font": "Pretendard",
-            "accentColor": "#2563eb",
+            "accentColor": "#f97316",
             "density": "normal",
         },
         "blocks": [
@@ -30,6 +31,12 @@ def default_document() -> dict:
                     "email": "hello@example.com",
                     "phone": "010-0000-0000",
                     "location": "서울, 대한민국",
+                    "imageDataUrl": "",
+                    "contactVisibility": {
+                        "email": True,
+                        "phone": True,
+                        "location": True,
+                    },
                 },
             ),
             block(
@@ -70,8 +77,12 @@ def default_document() -> dict:
                             "id": str(uuid4()),
                             "name": "프로젝트 이름",
                             "period": "2025.01 - 2025.06",
+                            "role": "백엔드 개발",
+                            "stack": "FastAPI, PostgreSQL, Docker",
                             "description": "내 역할과 성과를 구체적으로 작성해 주세요.",
+                            "achievements": "핵심 기여와 정량 성과를 한 줄씩 작성해 주세요.",
                             "url": "",
+                            "evidenceUrl": "",
                         }
                     ],
                 },

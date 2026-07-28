@@ -53,7 +53,7 @@ async function writeStaticShell() {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <meta name="description" content="Blockfolio에서 발행한 이력서" />
+    <meta name="description" content="Blockfolio에서 발행한 이력서·포트폴리오·자기소개서" />
     <title>Blockfolio Resume</title>
     <link rel="stylesheet" href="/assets/app.css" />
   </head>

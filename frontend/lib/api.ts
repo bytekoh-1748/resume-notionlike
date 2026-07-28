@@ -37,10 +37,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 export const api = {
   listResumes: (includeDeleted = false) =>
     request<Resume[]>(`/api/resumes${includeDeleted ? "?include_deleted=true" : ""}`),
-  createResume: (title = "새 이력서") =>
+  createResume: (title = "새 문서", document?: ResumeDocument) =>
     request<Resume>("/api/resumes", {
       method: "POST",
-      body: JSON.stringify({ title }),
+      body: JSON.stringify({ title, document }),
     }),
   getResume: (id: string) => request<Resume>(`/api/resumes/${id}`),
   saveResume: (
@@ -73,4 +73,3 @@ export const api = {
   pdfUrl: (id: string) => `${getApiBase()}/api/resumes/${id}/pdf`,
   publicPdfUrl: (slug: string) => `${getApiBase()}/api/public/resumes/${slug}/pdf`,
 };
-

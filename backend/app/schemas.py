@@ -19,10 +19,17 @@ BlockType = Literal[
     "divider",
 ]
 
+TemplateId = Literal[
+    "resume-one-page",
+    "resume-two-page",
+    "portfolio",
+    "cover-letter",
+]
+
 
 class Theme(BaseModel):
     font: str = "Pretendard"
-    accentColor: str = "#2563eb"
+    accentColor: str = "#f97316"
     density: Literal["compact", "normal"] = "normal"
 
 
@@ -41,12 +48,13 @@ class ResumeBlock(BaseModel):
 
 class ResumeDocument(BaseModel):
     schemaVersion: Literal[1] = 1
+    template: TemplateId = "resume-one-page"
     theme: Theme = Field(default_factory=Theme)
     blocks: list[ResumeBlock] = Field(default_factory=list)
 
 
 class ResumeCreate(BaseModel):
-    title: str = Field(default="새 이력서", min_length=1, max_length=160)
+    title: str = Field(default="새 문서", min_length=1, max_length=160)
     document: ResumeDocument | None = None
 
 
@@ -77,4 +85,3 @@ class PublicResume(BaseModel):
     slug: str
     document: ResumeDocument
     published_at: datetime
-

@@ -5,6 +5,9 @@ import {
   BriefcaseBusiness,
   GraduationCap,
   ImagePlus,
+  Mail,
+  MapPin,
+  Phone,
   Plus,
   Trash2,
   X,
@@ -14,9 +17,20 @@ import { RichTextEditor } from "./rich-text";
 
 type Data = Record<string, unknown>;
 type Item = Record<string, unknown>;
+type ContactKey = "email" | "phone" | "location";
 
 const value = (data: Data, key: string) => (typeof data[key] === "string" ? (data[key] as string) : "");
 const list = (data: Data) => (Array.isArray(data.items) ? (data.items as Item[]) : []);
+const contactFields: Array<{
+  key: ContactKey;
+  label: string;
+  placeholder: string;
+  icon: typeof Mail;
+}> = [
+  { key: "email", label: "이메일", placeholder: "name@example.com", icon: Mail },
+  { key: "phone", label: "연락처", placeholder: "010-0000-0000", icon: Phone },
+  { key: "location", label: "지역", placeholder: "서울, 대한민국", icon: MapPin },
+];
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 const MAX_IMAGE_EDGE = 512;
 const ACCEPTED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
@@ -234,26 +248,137 @@ export function BlockEditor({
   if (block.type === "divider") return <div className="editor-divider" aria-label="구분선" />;
 
   if (block.type === "profile") {
+    const contactVisibility =
+      data.contactVisibility && typeof data.contactVisibility === "object"
+        ? (data.contactVisibility as Record<string, unknown>)
+        : {};
+    const isContactVisible = (key: ContactKey) =>
+      typeof contactVisibility[key] === "boolean" ? Boolean(contactVisibility[key]) : true;
+    const setContactVisible = (key: ContactKey, visible: boolean) =>
+      onData({
+        ...data,
+        contactVisibility: { ...contactVisibility, [key]: visible },
+      });
+    const visibleContacts = contactFields.filter((contact) => isContactVisible(contact.key));
+    const hiddenContacts = contactFields.filter((contact) => !isContactVisible(contact.key));
+    const profileImage = value(data, "imageDataUrl");
+
     return (
       <div className="profile-editor">
-        <input
-          className="profile-role-input"
-          value={value(data, "role")}
-          onChange={(event) => onData({ ...data, role: event.target.value })}
-          placeholder="직무"
-          aria-label="직무"
-        />
-        <input
-          className="profile-name-input"
-          value={value(data, "name")}
-          onChange={(event) => onData({ ...data, name: event.target.value })}
-          placeholder="이름"
-          aria-label="이름"
-        />
-        <div className="profile-fields">
-          <Field label="이메일" value={value(data, "email")} onChange={(next) => onData({ ...data, email: next })} />
-          <Field label="연락처" value={value(data, "phone")} onChange={(next) => onData({ ...data, phone: next })} />
-          <Field label="지역" value={value(data, "location")} onChange={(next) => onData({ ...data, location: next })} />
+        <div className="profile-editor-head">
+          <div className="profile-image-control">
+            <label className={`profile-image-picker ${profileImage ? "has-image" : ""}`}>
+              {profileImage ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={profileImage} alt="프로필 사진" />
+              ) : (
+                <span>
+                  <ImagePlus size={19} />
+                  사진
+                </span>
+              )}
+              <input
+                className="visually-hidden-file"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                aria-label="프로필 사진 추가 또는 교체"
+                onChange={async (event) => {
+                  const input = event.currentTarget;
+                  const file = input.files?.[0];
+                  if (!file) return;
+                  setImageError("profile", "");
+                  try {
+                    onData({ ...data, imageDataUrl: await optimizeImage(file) });
+                  } catch (error) {
+                    setImageError(
+                      "profile",
+                      error instanceof Error ? error.message : "이미지를 처리하지 못했습니다.",
+                    );
+                  } finally {
+                    input.value = "";
+                  }
+                }}
+              />
+            </label>
+            {profileImage && (
+              <button
+                type="button"
+                className="profile-image-remove"
+                onClick={() => {
+                  onData({ ...data, imageDataUrl: "" });
+                  setImageError("profile", "");
+                }}
+              >
+                <X size={12} /> 사진 삭제
+              </button>
+            )}
+          </div>
+          <div className="profile-editor-identity">
+            <input
+              className="profile-name-input"
+              value={value(data, "name")}
+              onChange={(event) => onData({ ...data, name: event.target.value })}
+              placeholder="이름"
+              aria-label="이름"
+            />
+            <input
+              className="profile-role-input"
+              value={value(data, "role")}
+              onChange={(event) => onData({ ...data, role: event.target.value })}
+              placeholder="한 줄 직무 소개"
+              aria-label="직무"
+            />
+            {imageErrors.profile && (
+              <p className="item-image-error" role="alert">
+                {imageErrors.profile}
+              </p>
+            )}
+          </div>
+        </div>
+        <div className="profile-contact-editor">
+          {visibleContacts.map((contact) => {
+            const Icon = contact.icon;
+            return (
+              <div className="profile-contact-field" key={contact.key}>
+                <span className="profile-contact-icon">
+                  <Icon size={13} />
+                </span>
+                <Field
+                  label={contact.label}
+                  value={value(data, contact.key)}
+                  placeholder={contact.placeholder}
+                  onChange={(next) => onData({ ...data, [contact.key]: next })}
+                />
+                <button
+                  type="button"
+                  className="profile-contact-remove"
+                  onClick={() => setContactVisible(contact.key, false)}
+                  aria-label={`${contact.label} 항목 제거`}
+                >
+                  <X size={13} />
+                </button>
+              </div>
+            );
+          })}
+          {hiddenContacts.length > 0 && (
+            <div className="profile-contact-add">
+              <span>연락처 항목 추가</span>
+              <div>
+                {hiddenContacts.map((contact) => {
+                  const Icon = contact.icon;
+                  return (
+                    <button
+                      type="button"
+                      key={contact.key}
+                      onClick={() => setContactVisible(contact.key, true)}
+                    >
+                      <Icon size={12} /> {contact.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -321,12 +446,36 @@ export function BlockEditor({
         <ListEditor
           entries={list(data)}
           onChange={(items) => onData({ ...data, items })}
-          createItem={() => ({ id: uuid(), name: "", period: "", description: "", url: "" })}
+          createItem={() => ({
+            id: uuid(),
+            name: "",
+            period: "",
+            role: "",
+            stack: "",
+            description: "",
+            achievements: "",
+            url: "",
+            evidenceUrl: "",
+          })}
           fields={[
             { key: "name", label: "프로젝트" },
             { key: "period", label: "기간" },
-            { key: "url", label: "링크" },
-            { key: "description", label: "역할과 성과", multiline: true },
+            { key: "role", label: "담당 역할", placeholder: "백엔드 리드" },
+            { key: "stack", label: "핵심 기술", placeholder: "Java, Spring Boot, PostgreSQL" },
+            { key: "url", label: "프로젝트 상세 링크" },
+            { key: "evidenceUrl", label: "코드·PR·이슈 증거 링크" },
+            {
+              key: "description",
+              label: "문제와 프로젝트 요약",
+              placeholder: "어떤 문제를 왜 해결했는지 요약해 주세요.",
+              multiline: true,
+            },
+            {
+              key: "achievements",
+              label: "핵심 성과 — 줄바꿈으로 구분",
+              placeholder: "내가 기여한 일과 정량 결과를 한 줄씩 작성해 주세요.",
+              multiline: true,
+            },
           ]}
         />
       </div>

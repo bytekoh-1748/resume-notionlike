@@ -30,7 +30,15 @@ export function createBlock(type: BlockType, order: number): ResumeBlock {
     case "profile":
       return {
         ...common,
-        data: { name: "", role: "", email: "", phone: "", location: "" },
+        data: {
+          name: "",
+          role: "",
+          email: "",
+          phone: "",
+          location: "",
+          imageDataUrl: "",
+          contactVisibility: { email: true, phone: true, location: true },
+        },
       };
     case "summary":
     case "aiExperience":
@@ -60,7 +68,19 @@ export function createBlock(type: BlockType, order: number): ResumeBlock {
         ...common,
         data: {
           title: "프로젝트",
-          items: [{ id: id(), name: "", period: "", description: "", url: "" }],
+          items: [
+            {
+              id: id(),
+              name: "",
+              period: "",
+              role: "",
+              stack: "",
+              description: "",
+              achievements: "",
+              url: "",
+              evidenceUrl: "",
+            },
+          ],
         },
       };
     case "education":
