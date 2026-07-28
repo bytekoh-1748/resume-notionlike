@@ -1,0 +1,86 @@
+name: resume-builder
+
+services:
+  db:
+    image: postgres:18.4-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-resume}
+      POSTGRES_USER: ${POSTGRES_USER:-resume}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-resume-local-password}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - resume_pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-resume} -d ${POSTGRES_DB:-resume}"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://resume:resume-local-password@db:5432/resume}
+      WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost:5173}
+      WEB_INTERNAL_URL: ${WEB_INTERNAL_URL:-http://web:3000}
+      API_INTERNAL_URL: ${API_INTERNAL_URL:-http://api:8000}
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - ./var:/workspace/var
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz')"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  web:
+    build:
+      context: ./frontend
+      target: development
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_PORT: "8000"
+    ports:
+      - "127.0.0.1:5173:3000"
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  publisher:
+    profiles: ["publish"]
+    build:
+      context: .
+      dockerfile: publisher/Dockerfile
+    environment:
+      API_URL: http://api:8000
+      WEB_URL: http://web:3000
+      CLOUDFLARE_ACCOUNT_ID: ${CLOUDFLARE_ACCOUNT_ID:-}
+      CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN:-}
+      CLOUDFLARE_PAGES_PROJECT: ${CLOUDFLARE_PAGES_PROJECT:-}
+      DEPLOY: ${DEPLOY:-false}
+    volumes:
+      - ./var:/workspace/var
+    depends_on:
+      api:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+
+volumes:
+  resume_pgdata:
+  frontend_node_modules:

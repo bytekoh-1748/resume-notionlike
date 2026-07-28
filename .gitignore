@@ -1,0 +1,17 @@
+.DS_Store
+.env
+.env.cloudflare
+.pytest_cache/
+__pycache__/
+*.py[cod]
+.venv/
+frontend/node_modules/
+frontend/.next/
+frontend/.vinext/
+frontend/dist/
+frontend/.wrangler/
+frontend/outputs/
+frontend/work/
+publisher/node_modules/
+publisher/.wrangler/
+var/

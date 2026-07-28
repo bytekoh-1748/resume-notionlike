@@ -1,0 +1,14 @@
+.git
+.env
+.env.cloudflare
+var
+frontend/node_modules
+frontend/.next
+frontend/.vinext
+frontend/dist
+frontend/.wrangler
+backend/.pytest_cache
+backend/__pycache__
+backend/.venv
+publisher/node_modules
+**/__pycache__
