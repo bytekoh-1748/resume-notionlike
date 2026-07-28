@@ -25,12 +25,20 @@ export type TemplateId =
   | "portfolio"
   | "cover-letter";
 
+export type BlockFormat = {
+  fontScale: number;
+  bold: boolean;
+  italic: boolean;
+  dividerThickness: number;
+};
+
 export type ResumeBlock = {
   id: string;
   type: BlockType;
   order: number;
   width: "full" | "half";
   print: { breakBefore: boolean };
+  format?: BlockFormat | null;
   data: Record<string, unknown>;
 };
 

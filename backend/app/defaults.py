@@ -8,6 +8,12 @@ def block(block_type: str, order: int, data: dict, width: str = "full") -> dict:
         "order": order,
         "width": width,
         "print": {"breakBefore": False},
+        "format": {
+            "fontScale": 100,
+            "bold": False,
+            "italic": False,
+            "dividerThickness": 1,
+        },
         "data": data,
     }
 
@@ -27,12 +33,14 @@ def default_document() -> dict:
                 0,
                 {
                     "name": "고유진",
-                    "role": "",
-                    "roleVisible": True,
                     "email": "hello@example.com",
                     "phone": "010-0000-0000",
                     "location": "서울, 대한민국",
                     "imageDataUrl": "",
+                    "imageFit": "cover",
+                    "imagePositionX": 50,
+                    "imagePositionY": 50,
+                    "imageZoom": 100,
                     "contactVisibility": {
                         "email": True,
                         "phone": True,

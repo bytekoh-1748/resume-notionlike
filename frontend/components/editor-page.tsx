@@ -24,12 +24,14 @@ import {
   ArrowDown,
   ArrowLeft,
   ArrowUp,
+  Bold,
   Check,
   Columns2,
   Copy,
   Download,
   Eye,
   GripVertical,
+  Italic,
   LoaderCircle,
   PanelLeftClose,
   PanelLeftOpen,
@@ -43,6 +45,7 @@ import {
   Unlink,
 } from "lucide-react";
 import { api, ApiError } from "../lib/api";
+import { blockFormatCssVariables, getBlockFormat } from "../lib/block-format";
 import { blockLabels, createBlock, normalizeOrder, paginateBlocks } from "../lib/blocks";
 import { useEditorStore } from "../lib/editor-store";
 import type { BlockType, ResumeBlock, ResumeDocument, SaveState } from "../lib/types";
@@ -68,15 +71,26 @@ function SortableBlock({
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: block.id,
   });
+  const format = getBlockFormat(block.format);
+  const updateFormat = (next: Partial<typeof format>) =>
+    onChange({ ...block, format: { ...format, ...next } });
+
   return (
     <section
       ref={setNodeRef}
-      className={`editable-block editable-block-${block.width} editable-block-${block.type} ${block.print.breakBefore ? "page-break-block" : ""} ${isDragging ? "dragging" : ""}`}
-      style={{
-        transform: CSS.Translate.toString(transform),
-        transition,
-        breakBefore: block.print.breakBefore ? "page" : "auto",
-      }}
+      className={`editable-block editable-block-${block.width} editable-block-${block.type} ${
+        block.print.breakBefore ? "page-break-block" : ""
+      } ${isDragging ? "dragging" : ""} ${format.bold ? "block-format-bold" : ""} ${
+        format.italic ? "block-format-italic" : ""
+      }`}
+      style={
+        {
+          transform: CSS.Translate.toString(transform),
+          transition,
+          breakBefore: block.print.breakBefore ? "page" : "auto",
+          ...blockFormatCssVariables(format.fontScale),
+        } as React.CSSProperties
+      }
       data-testid={`block-${block.id}`}
     >
       <div className="block-toolbar">
@@ -90,6 +104,59 @@ function SortableBlock({
           <GripVertical size={17} />
         </button>
         <span>{blockLabels[block.type]}</span>
+        <div className="block-format-controls">
+          {block.type === "divider" ? (
+            <label className="divider-thickness-control">
+              <span>굵기</span>
+              <input
+                type="range"
+                min="1"
+                max="8"
+                value={format.dividerThickness}
+                onChange={(event) =>
+                  updateFormat({ dividerThickness: Number(event.target.value) })
+                }
+                aria-label="구분선 굵기"
+              />
+              <output>{format.dividerThickness}</output>
+            </label>
+          ) : (
+            <>
+              <select
+                className="block-font-size"
+                value={format.fontScale}
+                onChange={(event) => updateFormat({ fontScale: Number(event.target.value) })}
+                aria-label="블록 글자 크기"
+              >
+                <option value="80">80%</option>
+                <option value="90">90%</option>
+                <option value="100">100%</option>
+                <option value="110">110%</option>
+                <option value="120">120%</option>
+                <option value="130">130%</option>
+                <option value="140">140%</option>
+              </select>
+              <button
+                type="button"
+                className={format.bold ? "active" : ""}
+                onClick={() => updateFormat({ bold: !format.bold })}
+                aria-label="블록 글자 굵게"
+                aria-pressed={format.bold}
+              >
+                <Bold size={14} />
+              </button>
+              <button
+                type="button"
+                className={format.italic ? "active" : ""}
+                onClick={() => updateFormat({ italic: !format.italic })}
+                aria-label="블록 글자 기울임"
+                aria-pressed={format.italic}
+              >
+                <Italic size={14} />
+              </button>
+            </>
+          )}
+        </div>
         <div className="block-toolbar-actions">
           <button type="button" onClick={() => onMove(-1)} aria-label="위로 이동">
             <ArrowUp size={14} />

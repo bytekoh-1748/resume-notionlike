@@ -59,18 +59,26 @@ const block = (
   order,
   width: options.width ?? "full",
   print: { breakBefore: options.breakBefore ?? false },
+  format: {
+    fontScale: 100,
+    bold: false,
+    italic: false,
+    dividerThickness: 1,
+  },
   data,
 });
 
-const profile = (order: number, role: string) =>
+const profile = (order: number) =>
   block("profile", order, {
     name: "이름",
-    role,
-    roleVisible: true,
     email: "name@example.com",
     phone: "010-0000-0000",
     location: "서울, 대한민국",
     imageDataUrl: "",
+    imageFit: "cover",
+    imagePositionX: 50,
+    imagePositionY: 50,
+    imageZoom: 100,
     contactVisibility: { email: true, phone: true, location: true },
   });
 
@@ -128,7 +136,7 @@ const baseDocument = (
 
 function onePageResume(): ResumeDocument {
   return baseDocument("resume-one-page", [
-    profile(0, "백엔드 개발자 · 한 줄 전문성"),
+    profile(0),
     linkHub(1),
     block("summary", 2, {
       title: "핵심 요약",
@@ -198,7 +206,7 @@ function onePageResume(): ResumeDocument {
 
 function twoPageResume(): ResumeDocument {
   return baseDocument("resume-two-page", [
-    profile(0, "백엔드 개발자 · 한 줄 전문성"),
+    profile(0),
     linkHub(1),
     block("summary", 2, {
       title: "소개",
@@ -301,7 +309,7 @@ function portfolio(): ResumeDocument {
   return baseDocument(
     "portfolio",
     [
-      profile(0, "기술 포트폴리오 · 전문 영역"),
+      profile(0),
       linkHub(1),
       block("summary", 2, {
         title: "포트폴리오 소개",
@@ -346,7 +354,7 @@ function coverLetter(): ResumeDocument {
   return baseDocument(
     "cover-letter",
     [
-      profile(0, "지원 직무 · 자기소개서"),
+      profile(0),
       linkHub(1),
       block("richText", 2, {
         title: "지원 동기",

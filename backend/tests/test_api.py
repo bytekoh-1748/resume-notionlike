@@ -44,6 +44,12 @@ def test_resume_lifecycle_and_revision_conflict():
         "phone": True,
         "location": True,
     }
+    assert profile["format"] == {
+        "fontScale": 100,
+        "bold": False,
+        "italic": False,
+        "dividerThickness": 1,
+    }
     experience = next(
         block for block in resume["draft_document"]["blocks"] if block["type"] == "experience"
     )
@@ -59,6 +65,12 @@ def test_resume_lifecycle_and_revision_conflict():
     experience["data"]["items"][0]["imageDataUrl"] = (
         "data:image/webp;base64,UklGRg=="
     )
+    experience["format"] = {
+        "fontScale": 110,
+        "bold": True,
+        "italic": False,
+        "dividerThickness": 1,
+    }
 
     changed = client.patch(
         f"/api/resumes/{resume['id']}",
@@ -78,6 +90,8 @@ def test_resume_lifecycle_and_revision_conflict():
     assert saved_experience["data"]["items"][0]["imageDataUrl"].startswith(
         "data:image/webp;base64,"
     )
+    assert saved_experience["format"]["fontScale"] == 110
+    assert saved_experience["format"]["bold"] is True
 
     stale = client.patch(
         f"/api/resumes/{resume['id']}",

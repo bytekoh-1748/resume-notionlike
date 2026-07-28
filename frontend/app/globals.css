@@ -1068,6 +1068,54 @@ select:focus-visible,
   padding-left: 3px;
 }
 
+.block-format-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 3px;
+  border-left: 1px solid var(--line);
+  padding-left: 4px;
+}
+
+.block-font-size {
+  width: 58px;
+  height: 24px;
+  border: 0;
+  border-radius: 5px;
+  padding: 0 4px;
+  background: transparent;
+  color: #667085;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.block-font-size:hover,
+.block-font-size:focus {
+  outline: 0;
+  background: #eef2f7;
+  color: #1f2937;
+}
+
+.divider-thickness-control {
+  display: grid;
+  grid-template-columns: auto 72px 14px;
+  align-items: center;
+  gap: 5px;
+  color: #667085;
+  font-size: 9px;
+}
+
+.divider-thickness-control input {
+  width: 72px;
+  accent-color: var(--blue);
+}
+
+.divider-thickness-control output {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
 .drag-handle {
   cursor: grab !important;
 }
@@ -1080,7 +1128,7 @@ select:focus-visible,
 .profile-editor-head {
   display: grid;
   grid-template-columns: 72px minmax(0, 1fr);
-  align-items: center;
+  align-items: start;
   gap: 14px;
 }
 
@@ -1150,7 +1198,23 @@ select:focus-visible,
   color: var(--danger);
 }
 
-.profile-role-input,
+.profile-image-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.profile-image-adjust-open {
+  border: 0;
+  padding: 2px 0;
+  background: transparent;
+  color: var(--blue);
+  font-size: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .profile-name-input,
 .inline-section-title {
   width: 100%;
@@ -1158,13 +1222,6 @@ select:focus-visible,
   padding: 0;
   background: transparent;
   color: var(--text);
-}
-
-.profile-role-input {
-  color: #596273;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
 }
 
 .profile-name-input {
@@ -1316,7 +1373,6 @@ select:focus-visible,
 
 .field input:focus,
 .field textarea:focus,
-.profile-role-input:focus,
 .profile-name-input:focus,
 .inline-section-title:focus {
   outline: 0;
@@ -1758,14 +1814,6 @@ select:focus-visible,
   font-weight: 820;
   letter-spacing: -0.045em;
   line-height: 1.15;
-}
-
-.resume-kicker {
-  margin: 7px 0 0;
-  color: #4e5663;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
 }
 
 .profile-contacts {
@@ -2772,7 +2820,6 @@ select:focus-visible,
 
 .field input:focus,
 .field textarea:focus,
-.profile-role-input:focus,
 .profile-name-input:focus,
 .inline-section-title:focus {
   border-color: #1a1a1a;
@@ -3035,10 +3082,6 @@ body,
   line-height: 1.6;
 }
 
-.profile-role-input {
-  font-size: 13px;
-}
-
 .profile-name-input {
   font-size: 24px;
 }
@@ -3068,11 +3111,6 @@ body,
 
 .resume-profile h1 {
   font-size: 24px;
-}
-
-.resume-kicker {
-  font-size: 13px;
-  line-height: 1.5;
 }
 
 .profile-contacts {
@@ -3220,42 +3258,157 @@ body,
 }
 
 /* Conventional resume composition with a clear header and evidence-first projects. */
-.profile-role-editor-row {
+.profile-image-adjustment-backdrop {
+  position: fixed;
+  z-index: 120;
+  inset: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 28px;
-  align-items: center;
-  gap: 6px;
+  place-items: center;
+  padding: 20px;
+  background: rgb(16 19 24 / 38%);
 }
 
-.profile-role-remove {
+.profile-image-adjustment-dialog {
   display: grid;
-  width: 28px;
-  height: 28px;
+  width: min(420px, 100%);
+  max-height: calc(100vh - 40px);
+  overflow: auto;
+  border: 1px solid #d8dadd;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 22px 60px rgb(16 19 24 / 18%);
+}
+
+.profile-image-adjustment-header {
+  display: flex;
+  min-height: 52px;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #e7e8ea;
+  padding: 0 16px;
+}
+
+.profile-image-adjustment-header strong {
+  color: #1a1a1a;
+  font-size: 14px;
+}
+
+.profile-image-adjustment-header button {
+  display: grid;
+  width: 30px;
+  height: 30px;
   place-items: center;
   border: 0;
-  border-radius: 4px;
+  border-radius: 6px;
   background: transparent;
   color: #73777d;
   cursor: pointer;
 }
 
-.profile-role-remove:hover {
-  background: #f7eeee;
-  color: var(--danger);
+.profile-image-adjustment-header button:hover {
+  background: #f2f3f5;
+  color: #1a1a1a;
 }
 
-.profile-role-add {
-  display: inline-flex;
-  width: fit-content;
+.profile-image-adjustment-preview {
+  width: 220px;
+  height: 220px;
+  margin: 20px auto 0;
+  overflow: hidden;
+  border: 1px solid #e0e2e5;
+  border-radius: 6px;
+  background: #f3f4f6;
+}
+
+.profile-image-adjustment-preview img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.profile-image-adjustments {
+  display: grid;
+  gap: 14px;
+  padding: 18px 20px 20px;
+  background: #fff;
+}
+
+.profile-image-fit {
+  display: flex;
+  gap: 6px;
+}
+
+.profile-image-fit button {
   min-height: 30px;
+  border: 1px solid #d8dadd;
+  border-radius: 6px;
+  padding: 0 10px;
+  background: #fff;
+  color: #4d5157;
+  font-size: 11px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.profile-image-fit button.active {
+  border-color: #1a1a1a;
+  background: #1a1a1a;
+  color: #fff;
+}
+
+.profile-image-sliders {
+  display: grid;
+  gap: 9px;
+}
+
+.profile-image-sliders label {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) 42px;
   align-items: center;
-  gap: 5px;
+  gap: 10px;
+  color: #4d5157;
+  font-size: 11px;
+}
+
+.profile-image-sliders input {
+  width: 100%;
+  accent-color: var(--blue);
+}
+
+.profile-image-sliders output {
+  color: #73777d;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.profile-image-reset {
+  width: fit-content;
   border: 0;
   padding: 0;
   background: transparent;
   color: var(--blue);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 650;
+  cursor: pointer;
+}
+
+.profile-image-adjustment-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid #e7e8ea;
+  padding-top: 14px;
+}
+
+.profile-image-adjustment-done {
+  min-width: 64px;
+  min-height: 34px;
+  border: 1px solid #1a1a1a;
+  border-radius: 6px;
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
   cursor: pointer;
 }
 
@@ -3265,47 +3418,55 @@ body,
 }
 
 .resume-profile.has-photo {
-  grid-template-columns: 112px minmax(0, 1fr);
-  align-items: start;
-  gap: 28px;
+  grid-template-columns: 86px minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+}
+
+.resume-profile.has-photo.photo-only {
+  grid-template-columns: 86px;
 }
 
 .resume-profile-photo {
-  width: 112px;
-  height: 112px;
+  width: 86px;
+  height: 86px;
   border-radius: 2px;
   background: #fff;
 }
 
 .resume-profile-content {
   align-content: start;
-  gap: 17px;
-  padding-top: 4px;
+  gap: 6px;
+  padding-top: 0;
 }
 
 .resume-profile h1 {
-  font-size: 30px;
+  font-size: 25px;
   font-weight: 760;
   letter-spacing: -0.04em;
 }
 
-.resume-kicker {
-  margin-top: 10px;
-  font-size: 16px;
-  font-weight: 650;
+.profile-contacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  border-top: 0;
+  padding-top: 0;
+  color: #1a1a1a;
+  font-size: 9.5px;
 }
 
-.profile-contacts {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 9px 18px;
-  border-top: 1px solid #1a1a1a;
-  padding-top: 12px;
-  color: #1a1a1a;
-  font-size: 11px;
+.profile-contacts.without-identity {
+  border-top: 0;
+  padding-top: 0;
 }
 
 .resume-block-profile + .resume-block-links {
+  margin-top: -18px;
+}
+
+.resume-block-profile + .resume-block-summary,
+.resume-block-links + .resume-block-summary {
   margin-top: -14px;
 }
 
@@ -3350,6 +3511,10 @@ body,
   grid-template-columns: 170px minmax(0, 1fr);
   align-items: start;
   gap: 32px;
+}
+
+.project-body.single-column {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .project-meta {
@@ -3679,6 +3844,10 @@ body,
     gap: 14px;
   }
 
+  .resume-profile.has-photo.photo-only {
+    grid-template-columns: 58px;
+  }
+
   .resume-profile-photo {
     width: 58px;
     height: 58px;
@@ -3840,4 +4009,101 @@ body,
   .resume-paper-paged .resume-block {
     break-before: auto !important;
   }
+}
+
+/* Per-block typography controls shared by the editor, preview, public page, and PDF. */
+.editable-block .profile-name-input {
+  font-size: var(--block-editor-name-size, 24px);
+}
+
+.editable-block .inline-section-title {
+  font-size: var(--block-editor-title-size, 16px);
+}
+
+.editable-block .field input,
+.editable-block .field textarea {
+  font-size: var(--block-editor-body-size, 13px);
+}
+
+.editable-block .rich-text-input {
+  font-size: var(--block-editor-rich-size, 12px);
+}
+
+.editable-block.block-format-bold :is(
+    .profile-name-input,
+    .inline-section-title,
+    .field input,
+    .field textarea,
+    .rich-text-input
+  ),
+.resume-block.block-format-bold :is(h1, h2, h3, p, li, a, span, time, small, strong, em) {
+  font-weight: 700;
+}
+
+.editable-block.block-format-italic :is(
+    .profile-name-input,
+    .inline-section-title,
+    .field input,
+    .field textarea,
+    .rich-text-input
+  ),
+.resume-block.block-format-italic :is(h1, h2, h3, p, li, a, span, time, small, strong, em) {
+  font-style: italic;
+}
+
+.resume-block-profile .resume-profile h1 {
+  font-size: var(--block-profile-name-size, 25px);
+}
+
+.resume-block .profile-contacts {
+  font-size: var(--block-contact-size, 9.5px);
+}
+
+.resume-block .resume-section-title {
+  font-size: var(--block-section-title-size, 18px);
+}
+
+.resume-block :is(.resume-description, .rich-text-view, .resume-bullet-list) {
+  font-size: var(--block-body-size, 14px);
+}
+
+.resume-block .project-heading h3 {
+  font-size: var(--block-project-title-size, 17px);
+}
+
+.resume-block .project-meta,
+.resume-block .credential-meta {
+  font-size: var(--block-meta-size, 11px);
+}
+
+.resume-block .project-body ul {
+  font-size: var(--block-project-body-size, 13px);
+}
+
+.resume-block .credential-main h3 {
+  font-size: var(--block-credential-title-size, 15px);
+}
+
+.resume-block .credential-detail {
+  font-size: var(--block-credential-detail-size, 12px);
+}
+
+.resume-block .simple-list strong {
+  font-size: var(--block-simple-title-size, 13px);
+}
+
+.resume-block :is(.simple-list p, .simple-list time, .language-row span) {
+  font-size: var(--block-simple-body-size, 12px);
+}
+
+.resume-block .skill-list span {
+  font-size: var(--block-skill-size, 12px);
+}
+
+.resume-block :is(.link-list a, .link-placeholder) {
+  font-size: var(--block-link-size, 12px);
+}
+
+.resume-block :is(.link-list-inline a, .link-list-inline .link-placeholder) {
+  font-size: var(--block-link-inline-size, 11px);
 }

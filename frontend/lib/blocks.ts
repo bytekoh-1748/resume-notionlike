@@ -25,6 +25,12 @@ export function createBlock(type: BlockType, order: number): ResumeBlock {
     order,
     width: "full" as const,
     print: { breakBefore: false },
+    format: {
+      fontScale: 100,
+      bold: false,
+      italic: false,
+      dividerThickness: 1,
+    },
   };
   switch (type) {
     case "profile":
@@ -32,12 +38,14 @@ export function createBlock(type: BlockType, order: number): ResumeBlock {
         ...common,
         data: {
           name: "",
-          role: "",
-          roleVisible: true,
           email: "",
           phone: "",
           location: "",
           imageDataUrl: "",
+          imageFit: "cover",
+          imagePositionX: 50,
+          imagePositionY: 50,
+          imageZoom: 100,
           contactVisibility: { email: true, phone: true, location: true },
         },
       };

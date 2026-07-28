@@ -38,12 +38,20 @@ class PrintOptions(BaseModel):
     breakBefore: bool = False
 
 
+class BlockFormat(BaseModel):
+    fontScale: int = Field(default=100, ge=80, le=140)
+    bold: bool = False
+    italic: bool = False
+    dividerThickness: int = Field(default=1, ge=1, le=8)
+
+
 class ResumeBlock(BaseModel):
     id: str
     type: BlockType
     order: int = Field(ge=0)
     width: Literal["full", "half"] = "full"
     print: PrintOptions = Field(default_factory=PrintOptions)
+    format: BlockFormat | None = None
     data: dict[str, Any] = Field(default_factory=dict)
 
 

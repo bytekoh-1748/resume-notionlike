@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   BriefcaseBusiness,
   GraduationCap,
@@ -20,6 +20,8 @@ type Item = Record<string, unknown>;
 type ContactKey = "email" | "phone" | "location";
 
 const value = (data: Data, key: string) => (typeof data[key] === "string" ? (data[key] as string) : "");
+const numericValue = (data: Data, key: string, fallback: number) =>
+  typeof data[key] === "number" && Number.isFinite(data[key]) ? (data[key] as number) : fallback;
 const list = (data: Data) => (Array.isArray(data.items) ? (data.items as Item[]) : []);
 const contactFields: Array<{
   key: ContactKey;
@@ -242,10 +244,30 @@ export function BlockEditor({
   const onData = (next: Data) => onChange({ ...block, data: next });
   const uuid = () => crypto.randomUUID();
   const [imageErrors, setImageErrors] = useState<Record<string, string>>({});
+  const [profileImageAdjustmentOpen, setProfileImageAdjustmentOpen] = useState(false);
   const setImageError = (itemId: string, message: string) =>
     setImageErrors((current) => ({ ...current, [itemId]: message }));
 
-  if (block.type === "divider") return <div className="editor-divider" aria-label="구분선" />;
+  useEffect(() => {
+    if (!profileImageAdjustmentOpen) return;
+
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setProfileImageAdjustmentOpen(false);
+    };
+    document.addEventListener("keydown", closeOnEscape);
+    return () => document.removeEventListener("keydown", closeOnEscape);
+  }, [profileImageAdjustmentOpen]);
+
+  if (block.type === "divider") {
+    const thickness = block.format?.dividerThickness ?? 1;
+    return (
+      <div
+        className="editor-divider"
+        aria-label={`구분선 ${thickness}px`}
+        style={{ height: `${thickness}px` }}
+      />
+    );
+  }
 
   if (block.type === "profile") {
     const contactVisibility =
@@ -262,7 +284,16 @@ export function BlockEditor({
     const visibleContacts = contactFields.filter((contact) => isContactVisible(contact.key));
     const hiddenContacts = contactFields.filter((contact) => !isContactVisible(contact.key));
     const profileImage = value(data, "imageDataUrl");
-    const roleVisible = typeof data.roleVisible === "boolean" ? data.roleVisible : true;
+    const profileImageFit = data.imageFit === "contain" ? "contain" : "cover";
+    const profileImagePositionX = numericValue(data, "imagePositionX", 50);
+    const profileImagePositionY = numericValue(data, "imagePositionY", 50);
+    const profileImageZoom = numericValue(data, "imageZoom", 100);
+    const profileImageStyle = {
+      objectFit: profileImageFit,
+      objectPosition: `${profileImagePositionX}% ${profileImagePositionY}%`,
+      transform: `scale(${profileImageZoom / 100})`,
+      transformOrigin: `${profileImagePositionX}% ${profileImagePositionY}%`,
+    } as const;
 
     return (
       <div className="profile-editor">
@@ -271,7 +302,7 @@ export function BlockEditor({
             <label className={`profile-image-picker ${profileImage ? "has-image" : ""}`}>
               {profileImage ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={profileImage} alt="프로필 사진" />
+                <img src={profileImage} alt="프로필 사진" style={profileImageStyle} />
               ) : (
                 <span>
                   <ImagePlus size={19} />
@@ -289,7 +320,16 @@ export function BlockEditor({
                   if (!file) return;
                   setImageError("profile", "");
                   try {
-                    onData({ ...data, imageDataUrl: await optimizeImage(file) });
+                    const nextImage = await optimizeImage(file);
+                    onData({
+                      ...data,
+                      imageDataUrl: nextImage,
+                      imageFit: "cover",
+                      imagePositionX: 50,
+                      imagePositionY: 50,
+                      imageZoom: 100,
+                    });
+                    setProfileImageAdjustmentOpen(true);
                   } catch (error) {
                     setImageError(
                       "profile",
@@ -302,16 +342,26 @@ export function BlockEditor({
               />
             </label>
             {profileImage && (
-              <button
-                type="button"
-                className="profile-image-remove"
-                onClick={() => {
-                  onData({ ...data, imageDataUrl: "" });
-                  setImageError("profile", "");
-                }}
-              >
-                <X size={12} /> 사진 삭제
-              </button>
+              <div className="profile-image-actions">
+                <button
+                  type="button"
+                  className="profile-image-adjust-open"
+                  onClick={() => setProfileImageAdjustmentOpen(true)}
+                >
+                  사진 조정
+                </button>
+                <button
+                  type="button"
+                  className="profile-image-remove"
+                  onClick={() => {
+                    onData({ ...data, imageDataUrl: "" });
+                    setProfileImageAdjustmentOpen(false);
+                    setImageError("profile", "");
+                  }}
+                >
+                  <X size={12} /> 사진 삭제
+                </button>
+              </div>
             )}
           </div>
           <div className="profile-editor-identity">
@@ -322,33 +372,6 @@ export function BlockEditor({
               placeholder="이름"
               aria-label="이름"
             />
-            {roleVisible ? (
-              <div className="profile-role-editor-row">
-                <input
-                  className="profile-role-input"
-                  value={value(data, "role")}
-                  onChange={(event) => onData({ ...data, role: event.target.value })}
-                  placeholder="한 줄 직무 소개"
-                  aria-label="한 줄 직무 소개"
-                />
-                <button
-                  type="button"
-                  className="profile-role-remove"
-                  onClick={() => onData({ ...data, role: "", roleVisible: false })}
-                  aria-label="한 줄 직무 소개 제거"
-                >
-                  <X size={13} />
-                </button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                className="profile-role-add"
-                onClick={() => onData({ ...data, roleVisible: true })}
-              >
-                <Plus size={13} /> 한 줄 직무 소개 추가
-              </button>
-            )}
             {imageErrors.profile && (
               <p className="item-image-error" role="alert">
                 {imageErrors.profile}
@@ -356,6 +379,119 @@ export function BlockEditor({
             )}
           </div>
         </div>
+        {profileImage && profileImageAdjustmentOpen && (
+          <div
+            className="profile-image-adjustment-backdrop"
+            onMouseDown={() => setProfileImageAdjustmentOpen(false)}
+          >
+            <div
+              className="profile-image-adjustment-dialog"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="profile-image-adjustment-title"
+              onMouseDown={(event) => event.stopPropagation()}
+            >
+              <div className="profile-image-adjustment-header">
+                <strong id="profile-image-adjustment-title">사진 조정</strong>
+                <button
+                  type="button"
+                  onClick={() => setProfileImageAdjustmentOpen(false)}
+                  aria-label="사진 조정 닫기"
+                  autoFocus
+                >
+                  <X size={17} />
+                </button>
+              </div>
+              <div className="profile-image-adjustment-preview">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={profileImage} alt="조정 중인 프로필 사진" style={profileImageStyle} />
+              </div>
+              <div className="profile-image-adjustments">
+                <div className="profile-image-fit" role="group" aria-label="사진 맞춤 방식">
+                  <button
+                    type="button"
+                    className={profileImageFit === "cover" ? "active" : ""}
+                    onClick={() => onData({ ...data, imageFit: "cover" })}
+                  >
+                    영역 채우기
+                  </button>
+                  <button
+                    type="button"
+                    className={profileImageFit === "contain" ? "active" : ""}
+                    onClick={() => onData({ ...data, imageFit: "contain" })}
+                  >
+                    전체 사진
+                  </button>
+                </div>
+                <div className="profile-image-sliders">
+                  <label>
+                    <span>가로 위치</span>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={profileImagePositionX}
+                      onChange={(event) =>
+                        onData({ ...data, imagePositionX: Number(event.target.value) })
+                      }
+                    />
+                    <output>{profileImagePositionX}%</output>
+                  </label>
+                  <label>
+                    <span>세로 위치</span>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={profileImagePositionY}
+                      onChange={(event) =>
+                        onData({ ...data, imagePositionY: Number(event.target.value) })
+                      }
+                    />
+                    <output>{profileImagePositionY}%</output>
+                  </label>
+                  <label>
+                    <span>확대</span>
+                    <input
+                      type="range"
+                      min="100"
+                      max="200"
+                      value={profileImageZoom}
+                      onChange={(event) =>
+                        onData({ ...data, imageZoom: Number(event.target.value) })
+                      }
+                    />
+                    <output>{profileImageZoom}%</output>
+                  </label>
+                </div>
+                <div className="profile-image-adjustment-footer">
+                  <button
+                    type="button"
+                    className="profile-image-reset"
+                    onClick={() =>
+                      onData({
+                        ...data,
+                        imageFit: "cover",
+                        imagePositionX: 50,
+                        imagePositionY: 50,
+                        imageZoom: 100,
+                      })
+                    }
+                  >
+                    초기화
+                  </button>
+                  <button
+                    type="button"
+                    className="profile-image-adjustment-done"
+                    onClick={() => setProfileImageAdjustmentOpen(false)}
+                  >
+                    완료
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         <div className="profile-contact-editor">
           {visibleContacts.map((contact) => {
             const Icon = contact.icon;
