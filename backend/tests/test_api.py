@@ -69,6 +69,7 @@ def test_resume_lifecycle_and_revision_conflict():
     assert experience["data"]["items"][0]["employmentType"] == "정규직"
     assert experience["data"]["items"][0]["role"] == ""
     assert project["data"]["items"][0]["organization"] == "진행한 곳"
+    assert project["data"]["items"][0]["teamSize"] == "5인 팀"
     assert project["data"]["items"][0]["imageDataUrl"] == ""
     assert project["data"]["items"][0]["evidenceLinks"][0]["label"] == "GitHub 저장소"
     assert project["data"]["items"][0]["evidenceLinks"][0]["url"] == ""

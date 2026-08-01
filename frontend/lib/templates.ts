@@ -100,6 +100,7 @@ const projectItem = (name: string) => ({
   name,
   organization: "진행한 곳",
   period: "YYYY.MM - YYYY.MM",
+  teamSize: "5인 팀",
   role: "담당 역할",
   stack: "핵심 기술",
   description: "어떤 문제를 왜 해결했는지 한 문장으로 요약해 주세요.",
@@ -450,39 +451,61 @@ function coverLetter(): ResumeDocument {
   return baseDocument(
     "cover-letter",
     [
-      profile(0),
-      block("richText", 2, {
-        title: "지원 동기",
-        content: paragraphDocument([
-          "왜 이 회사와 직무를 선택했는지, 나의 경험과 회사가 풀고 있는 문제를 연결해 작성하세요.",
-        ]),
+      block("profile", 0, {
+        name: "이름",
+        email: "",
+        phone: "",
+        location: "",
+        imageDataUrl: "",
+        imageFit: "cover",
+        imagePositionX: 50,
+        imagePositionY: 50,
+        imageZoom: 100,
+        imagePlacement: "left",
+        contactVisibility: { email: false, phone: false, location: false },
+        contactLinks: [],
       }),
+      block("richText", 1, {
+        title: "",
+        content: paragraphDocument(["지원 직무 | 핵심 역량과 전문 분야"]),
+      }),
+      block("divider", 2, {}),
       block("richText", 3, {
-        title: "문제를 해결하는 방식",
+        title: "",
         content: paragraphDocument([
-          "대표 경험 하나를 골라 상황, 판단 기준, 행동, 결과의 흐름으로 작성하세요.",
+          "나를 가장 잘 보여 주는 태도나 경험으로 글을 시작하고, 이번 지원에서 전하고 싶은 핵심 메시지를 자연스럽게 소개하세요. 이어지는 네 섹션이 하나의 이야기처럼 읽히도록 현재의 관심과 앞으로의 방향을 함께 담아 보세요.",
         ]),
       }),
       block("richText", 4, {
-        title: "협업과 가치관",
+        title: "지원 동기",
         content: paragraphDocument([
-          "함께 일할 때 중요하게 생각하는 원칙과 실제 행동으로 증명한 사례를 작성하세요.",
+          "회사와 직무에 관심을 갖게 된 계기, 공감하는 방향, 나의 경험이 만나는 지점을 자연스럽게 연결하세요. 막연한 호감보다는 실제로 기여하고 싶은 문제나 역할을 중심으로 풀어내면 좋습니다.",
         ]),
       }),
       block("richText", 5, {
-        title: "입사 후 기여",
+        title: "직무 선택과 성장 방향",
         content: paragraphDocument([
-          "나의 강점이 지원 조직의 문제 해결에 어떻게 연결되는지 구체적으로 작성하세요.",
+          "이 직무를 선택하게 된 계기와 지금까지 쌓아 온 역량을 소개하세요. 앞으로 더 깊게 키우고 싶은 전문성과 장기적으로 만들어 가고 싶은 변화를 현실적인 성장 방향으로 이어 주세요.",
         ]),
       }),
-      block("links", 6, {
-        title: "근거 자료",
+      block("richText", 6, {
+        title: "직무를 준비해 온 과정",
+        content: paragraphDocument([
+          "프로젝트, 학습, 실무, 커뮤니티 활동 중 직무 역량을 잘 보여 주는 경험을 소개하세요. 맡은 역할과 구체적인 행동, 그 과정에서 달라진 점을 중심으로 꾸준함과 실행력이 드러나게 작성해 보세요.",
+        ]),
+      }),
+      block("richText", 7, {
+        title: "몰입을 통해 배운 것",
+        content: paragraphDocument([
+          "시간을 잊을 만큼 깊이 몰입했던 경험을 하나 골라 이야기해 보세요. 무엇이 몰입하게 했는지, 어려움을 어떻게 넘었는지, 그 경험이 이후의 태도와 선택에 어떤 영향을 주었는지를 자연스럽게 연결하세요.",
+        ]),
+      }),
+      block("divider", 8, {}),
+      block("links", 9, {
+        title: "연락처",
         display: "list",
-        items: [
-          linkItem("이력서 · 핵심 경력과 성과"),
-          linkItem("포트폴리오 · 프로젝트 상세"),
-          linkItem("GitHub · 실제 코드 기록"),
-        ],
+        preserveAsBlock: true,
+        items: [linkItem("name@example.com · portfolio.example.com")],
       }),
     ],
     "normal",

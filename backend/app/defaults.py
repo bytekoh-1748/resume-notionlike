@@ -100,6 +100,7 @@ def default_document() -> dict:
                             "name": "프로젝트 이름",
                             "organization": "진행한 곳",
                             "period": "2025.01 - 2025.06",
+                            "teamSize": "5인 팀",
                             "role": "백엔드 개발",
                             "stack": "FastAPI, PostgreSQL, Docker",
                             "description": "내 역할과 성과를 구체적으로 작성해 주세요.",

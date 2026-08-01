@@ -84,6 +84,7 @@ export function createBlock(type: BlockType, order: number): ResumeBlock {
               name: "",
               organization: "",
               period: "",
+              teamSize: "",
               role: "",
               stack: "",
               description: "",
@@ -162,6 +163,7 @@ const contactLinkLabels = /github|gitlab|블로그|blog|portfolio|포트폴리�
 
 const isContactLinkBlock = (block: ResumeBlock) => {
   if (block.type !== "links") return false;
+  if (block.data.preserveAsBlock === true) return false;
   const title = typeof block.data.title === "string" ? block.data.title.trim() : "";
   const display = typeof block.data.display === "string" ? block.data.display : "";
   const entries = Array.isArray(block.data.items)

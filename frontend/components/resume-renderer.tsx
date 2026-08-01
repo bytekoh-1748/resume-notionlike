@@ -113,6 +113,7 @@ const blockHasVisibleContent = (block: ResumeBlock) => {
           "description",
           "achievements",
           "period",
+          "teamSize",
           "role",
           "stack",
           "url",
@@ -176,12 +177,15 @@ function ProjectItems({ entries }: { entries: Item[] }) {
           .map((item) => item.trim())
           .filter(Boolean);
         const period = text(entry.period);
+        const teamSize = text(entry.teamSize);
         const role = text(entry.role);
         const stack = text(entry.stack);
         const projectUrl = text(entry.url);
         const evidenceLinks = projectEvidenceLinks(entry);
         const affiliation = [organization, role].filter(Boolean).join(" · ");
-        const hasHeading = Boolean(projectName || projectUrl || affiliation || period || stack);
+        const hasHeading = Boolean(
+          projectName || projectUrl || affiliation || period || teamSize || stack,
+        );
         const hasLinks = evidenceLinks.length > 0;
         const hasAchievements = achievements.length > 0;
 
@@ -229,7 +233,13 @@ function ProjectItems({ entries }: { entries: Item[] }) {
                     </div>
                   )}
                   {affiliation && <p className="project-affiliation">{affiliation}</p>}
-                  {period && <time className="project-period">{period}</time>}
+                  {(period || teamSize) && (
+                    <p className="project-period">
+                      {period && <time>{period}</time>}
+                      {period && teamSize && <span aria-hidden="true"> · </span>}
+                      {teamSize && <span>{teamSize}</span>}
+                    </p>
+                  )}
                   {stack && <p className="project-stack">{stack}</p>}
                 </div>
               )}

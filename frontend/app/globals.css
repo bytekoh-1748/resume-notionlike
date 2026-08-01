@@ -4016,6 +4016,12 @@ body,
   line-height: 1.45;
 }
 
+.project-period time,
+.project-period span {
+  color: inherit;
+  font: inherit;
+}
+
 .project-description {
   margin-top: 14px;
   color: #1a1a1a;
@@ -4814,4 +4820,164 @@ body,
 
 .resume-block :is(.link-list-inline a, .link-list-inline .link-placeholder) {
   font-size: var(--block-link-inline-size, 11px);
+}
+
+/* Cover letter: editorial single-page composition using the shared A4 margins. */
+.template-cover-letter .resume-grid {
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  gap: 0;
+}
+
+.template-cover-letter .resume-profile,
+.template-cover-letter .resume-profile-content {
+  gap: 0;
+  padding: 0;
+}
+
+.template-cover-letter .resume-block-profile .resume-profile h1 {
+  color: #121820;
+  font-size: var(--block-profile-name-size, 25px);
+  font-weight: 760;
+  letter-spacing: -0.04em;
+  line-height: 1.15;
+}
+
+.template-cover-letter .resume-block-profile + .resume-block-richText {
+  margin-top: 9px;
+}
+
+.template-cover-letter
+  .resume-block-profile
+  + .resume-block-richText
+  .resume-section-title {
+  display: none;
+}
+
+.template-cover-letter
+  .resume-block-profile
+  + .resume-block-richText
+  .rich-text-view {
+  color: #5c6678;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.025em;
+  line-height: 1.45;
+  text-transform: uppercase;
+}
+
+.template-cover-letter .resume-block-divider {
+  margin-top: 25px;
+}
+
+.template-cover-letter .resume-block-divider .resume-divider {
+  border-color: #dfe3e8;
+}
+
+.template-cover-letter .resume-block-divider + .resume-block-richText {
+  margin-top: 34px;
+}
+
+.template-cover-letter .resume-block-richText + .resume-block-richText {
+  margin-top: 32px;
+}
+
+.template-cover-letter
+  .resume-block-divider
+  + .resume-block-richText
+  + .resume-block-richText {
+  margin-top: 42px;
+}
+
+.template-cover-letter .resume-block-richText .resume-section-title {
+  margin-bottom: 20px;
+  color: #182231;
+  font-size: var(--block-section-title-size, 18px);
+  font-weight: 760;
+  letter-spacing: -0.035em;
+  line-height: 1.3;
+}
+
+.template-cover-letter .resume-block-richText .rich-text-view {
+  color: #3f4a5d;
+  font-size: var(--block-body-size, 14px);
+  line-height: 1.65;
+}
+
+.template-cover-letter .resume-block-richText .rich-text-view p {
+  margin: 0;
+}
+
+.template-cover-letter
+  .resume-block-divider
+  + .resume-block-richText
+  .resume-section-title {
+  display: none;
+}
+
+.template-cover-letter
+  .resume-block-divider
+  + .resume-block-richText
+  .rich-text-view {
+  color: #2f3948;
+  font-size: var(--block-body-size, 14px);
+  line-height: 1.65;
+}
+
+.template-cover-letter .resume-block-divider ~ .resume-block-divider {
+  margin-top: auto;
+}
+
+.template-cover-letter .resume-block-divider ~ .resume-block-links {
+  margin-top: 20px;
+}
+
+.template-cover-letter .resume-block-divider ~ .resume-block-links .resume-section-title {
+  display: none;
+}
+
+.template-cover-letter .resume-block-divider ~ .resume-block-links .link-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+}
+
+.template-cover-letter .resume-block-divider ~ .resume-block-links :is(a, .link-placeholder) {
+  display: inline-flex;
+  border: 0;
+  padding: 0;
+  color: #788294;
+  font-size: 9.5px;
+  font-weight: 550;
+}
+
+.template-cover-letter .resume-block-divider ~ .resume-block-links svg,
+.template-cover-letter .resume-block-divider ~ .resume-block-links small {
+  display: none;
+}
+
+.template-preview-cover-letter .template-preview-paper {
+  gap: 4px;
+  transform: none;
+}
+
+.template-preview-cover-letter .template-preview-title {
+  width: 55%;
+  height: 5px;
+  margin-bottom: 0;
+}
+
+.template-preview-cover-letter .template-preview-title + .template-preview-line {
+  width: 72%;
+  height: 2px;
+  margin-bottom: 5px;
+  background: #aab1bd;
+}
+
+.template-preview-cover-letter .template-preview-heading {
+  width: 34%;
+  height: 3px;
+  margin-top: 5px;
+  background: #323b49;
 }
