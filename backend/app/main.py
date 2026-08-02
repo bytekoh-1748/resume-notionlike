@@ -220,7 +220,7 @@ async def render_pdf(url: str) -> bytes:
         browser = await playwright.chromium.launch(headless=True)
         page = await browser.new_page()
         await page.emulate_media(media="screen")
-        await page.goto(url, wait_until="networkidle")
+        await page.goto(url, wait_until="domcontentloaded")
         await page.wait_for_selector("[data-render-ready='true']", timeout=20_000)
         await page.evaluate("document.fonts.ready")
         pdf = await page.pdf(
@@ -235,7 +235,11 @@ async def render_pdf(url: str) -> bytes:
 
 
 @app.get("/api/resumes/{resume_id}/pdf")
-async def get_draft_pdf(resume_id: str, db: Session = Depends(get_db)):
+async def get_draft_pdf(
+    resume_id: str,
+    inline: bool = Query(default=False),
+    db: Session = Depends(get_db),
+):
     resume = get_resume_or_404(db, resume_id)
     web_url = os.getenv("WEB_INTERNAL_URL", "http://web:3000")
     api_url = os.getenv("API_INTERNAL_URL", "http://api:8000")
@@ -244,7 +248,10 @@ async def get_draft_pdf(resume_id: str, db: Session = Depends(get_db)):
     return Response(
         pdf,
         media_type="application/pdf",
-        headers={"Content-Disposition": f"attachment; filename*=UTF-8''{filename}"},
+        headers={
+            "Content-Disposition":
+                f"{'inline' if inline else 'attachment'}; filename*=UTF-8''{filename}"
+        },
     )
 
 

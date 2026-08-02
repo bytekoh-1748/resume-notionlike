@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import "pretendard/dist/web/variable/pretendardvariable.css";
+import "@fontsource-variable/noto-sans-kr";
+import "pretendard/dist/web/static/pretendard.css";
 import "./globals.css";
 
 export const metadata: Metadata = {

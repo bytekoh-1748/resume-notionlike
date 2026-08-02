@@ -5,7 +5,6 @@ import Link from "next/link";
 import { ArrowLeft, Download, FileQuestion } from "lucide-react";
 import { api } from "../lib/api";
 import type { Resume } from "../lib/types";
-import { ResumeRenderer } from "./resume-renderer";
 
 export function DraftPreviewPage({ id }: { id: string }) {
   const [resume, setResume] = useState<Resume | null>(null);
@@ -30,6 +29,8 @@ export function DraftPreviewPage({ id }: { id: string }) {
 
   if (!resume) return <div className="full-page-message">미리보기를 준비하는 중입니다…</div>;
 
+  const pdfPreviewUrl = `${api.pdfUrl(resume.id)}?inline=1&revision=${resume.revision}`;
+
   return (
     <main className="public-shell draft-preview-shell">
       <header className="public-toolbar draft-preview-toolbar">
@@ -41,7 +42,11 @@ export function DraftPreviewPage({ id }: { id: string }) {
           <Download size={16} /> PDF 다운로드
         </a>
       </header>
-      <ResumeRenderer document={resume.draft_document} mode="public" />
+      <iframe
+        className="draft-preview-frame"
+        src={pdfPreviewUrl}
+        title={`${resume.title} PDF 미리보기`}
+      />
     </main>
   );
 }

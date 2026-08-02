@@ -10,6 +10,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { FaGithub } from "react-icons/fa";
+import { VscExtensions } from "react-icons/vsc";
 import type { ResumeBlock, ResumeDocument, TiptapDocument } from "../lib/types";
 import { blockFormatCssVariables, getBlockFormat } from "../lib/block-format";
 import { mergeContactLinksIntoProfile, paginateBlocks } from "../lib/blocks";
@@ -149,9 +150,17 @@ function SectionTitle({ children }: { children: string }) {
   return children ? <h2 className="resume-section-title">{children}</h2> : null;
 }
 
-function ProjectItems({ entries }: { entries: Item[] }) {
+function ProjectItems({
+  entries,
+  layout = "standard",
+}: {
+  entries: Item[];
+  layout?: "standard" | "split";
+}) {
+  const splitLayout = layout === "split";
+
   return (
-    <div className="project-list">
+    <div className={`project-list ${splitLayout ? "project-list-split" : ""}`}>
       {entries.map((entry, index) => {
         const image = imageDataUrl(entry);
         const previousEntry = index > 0 ? entries[index - 1] : null;
@@ -190,6 +199,91 @@ function ProjectItems({ entries }: { entries: Item[] }) {
         const hasAchievements = achievements.length > 0;
 
         if (!image && !hasHeading && !description && !hasLinks && !hasAchievements) return null;
+
+        if (splitLayout) {
+          const titleRole = role.trim();
+
+          return (
+            <article
+              className={`project-item project-item-split ${hasMediaColumn ? "has-image" : ""} ${
+                reusePreviousOrganization ? "same-organization" : ""
+              }`}
+              key={text(entry.id) || String(index)}
+            >
+              {visibleImage && (
+                <div className="project-media">
+                  <div className="project-image">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={image}
+                      alt={`${organization || projectName || "프로젝트"} 로고 또는 사진`}
+                    />
+                  </div>
+                </div>
+              )}
+              {reusePreviousOrganization && (
+                <div className="project-media-spacer" aria-hidden="true" />
+              )}
+              <div className="project-main">
+                <div className="project-heading project-heading-split">
+                  {(projectName || titleRole) && (
+                    <div className="project-title-line">
+                      <h3>
+                        {projectName}
+                        {titleRole && (
+                          <span className="project-title-context"> ({titleRole})</span>
+                        )}
+                      </h3>
+                    </div>
+                  )}
+                  {description && (
+                    <p className="resume-description project-description project-summary">
+                      {description}
+                    </p>
+                  )}
+                </div>
+                <div className="project-split-body">
+                  <aside className="project-facts">
+                    {(period || teamSize) && (
+                      <p className="project-fact-primary">
+                        {period && <time>{period}</time>}
+                        {period && teamSize && <span aria-hidden="true"> · </span>}
+                        {teamSize && <span>{teamSize}</span>}
+                      </p>
+                    )}
+                    {organization && <p>{organization}</p>}
+                    {stack && <p className="project-fact-stack">{stack}</p>}
+                    {(projectUrl || hasLinks) && (
+                      <div className="project-fact-links">
+                        {projectUrl && (
+                          <a href={projectUrl} target="_blank" rel="noreferrer">
+                            <FaGithub aria-hidden="true" /> GitHub
+                          </a>
+                        )}
+                        {evidenceLinks.map((link) => (
+                          <a key={link.id} href={link.url} target="_blank" rel="noreferrer">
+                            {(/marketplace/i.test(link.label) ||
+                              /marketplace\.visualstudio\.com/i.test(link.url)) && (
+                              <VscExtensions aria-hidden="true" />
+                            )}
+                            {link.label}
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                  </aside>
+                  {hasAchievements && (
+                    <ul className="project-achievement-list">
+                      {achievements.map((achievement, achievementIndex) => (
+                        <li key={`${achievement}-${achievementIndex}`}>{achievement}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            </article>
+          );
+        }
 
         return (
           <article
@@ -517,7 +611,10 @@ function ResumeBlockView({ block }: { block: ResumeBlock }) {
     return (
       <section>
         <SectionTitle>{title}</SectionTitle>
-        <ProjectItems entries={items(data)} />
+        <ProjectItems
+          entries={items(data)}
+          layout={data.layout === "split" ? "split" : "standard"}
+        />
       </section>
     );
   }
@@ -670,9 +767,16 @@ export function ResumeRenderer({
     .sort((a, b) => a.order - b.order)
     .filter(blockHasVisibleContent);
   const isPrintTemplate = document.template !== "resume-web";
+  const isOnePageTemplate = document.template === "resume-one-page";
+  const isCoverLetterTemplate = document.template === "cover-letter";
   const isPhotoSidebarTemplate = document.template === "resume-photo-sidebar";
+  const usesExportTypography = mode === "preview" || mode === "print";
   const resumeFont =
-    document.theme.font === "Pretendard" ? '"Pretendard Variable"' : document.theme.font;
+    usesExportTypography
+      ? '"Noto Sans KR Variable"'
+      : document.theme.font === "Pretendard"
+        ? '"Pretendard"'
+        : document.theme.font;
   const paginationKey = JSON.stringify(preparedDocument);
   const photoSidebarTypography = {
     profileName: 34,
@@ -691,18 +795,37 @@ export function ResumeRenderer({
     linkInline: 10.5,
   };
   const initialPages = useMemo(
-    () => (isPrintTemplate ? paginateBlocks(blocks) : []),
+    () => {
+      if (!isPrintTemplate) return [];
+      if (isOnePageTemplate) return [blocks];
+      if (isCoverLetterTemplate) {
+        const richTextBlockIndexes = blocks.flatMap((block, index) =>
+          block.type === "richText" ? [index] : [],
+        );
+        const secondPageRichTextIndex = Math.ceil(richTextBlockIndexes.length / 2);
+        const splitIndex = richTextBlockIndexes[secondPageRichTextIndex];
+
+        if (splitIndex !== undefined) {
+          return [blocks.slice(0, splitIndex), blocks.slice(splitIndex)];
+        }
+      }
+      return paginateBlocks(blocks);
+    },
     // The serialized document also captures nested block content and formatting.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [paginationKey, isPrintTemplate],
+    [paginationKey, isPrintTemplate, isOnePageTemplate, isCoverLetterTemplate],
   );
   const [pages, setPages] = useState(initialPages);
+  const [onePageScale, setOnePageScale] = useState(1);
+  const [coverPageScales, setCoverPageScales] = useState<Record<number, number>>({});
   const [paginationReady, setPaginationReady] = useState(!isPrintTemplate);
   const paperRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
       setPages(initialPages);
+      setOnePageScale(1);
+      setCoverPageScales({});
       setPaginationReady(!isPrintTemplate);
     });
     return () => cancelAnimationFrame(frame);
@@ -715,10 +838,20 @@ export function ResumeRenderer({
 
     const measure = async () => {
       setPaginationReady(false);
-      await window.document.fonts.ready;
-
       const paper = paperRef.current;
       if (!paper || cancelled) return;
+
+      const primaryFont = getComputedStyle(paper).fontFamily.split(",")[0]?.trim();
+      const documentText = paper.textContent || "한글 ABC 123";
+      if (primaryFont) {
+        await Promise.all(
+          [400, 500, 600, 700, 800, 900].map((weight) =>
+            window.document.fonts.load(`${weight} 16px ${primaryFont}`, documentText),
+          ),
+        );
+      }
+      await window.document.fonts.ready;
+      if (cancelled) return;
 
       const images = Array.from(paper.querySelectorAll("img"));
       await Promise.all(
@@ -737,6 +870,31 @@ export function ResumeRenderer({
         paper.querySelectorAll<HTMLElement>(".resume-page"),
       );
 
+      if (isOnePageTemplate) {
+        const pageElement = pageElements[0];
+        const gridElement = pageElement?.querySelector<HTMLElement>(".resume-grid");
+
+        if (pageElement && gridElement) {
+          const pageRect = pageElement.getBoundingClientRect();
+          const pageStyle = getComputedStyle(pageElement);
+          const contentBottom =
+            pageRect.top +
+            pageElement.clientHeight -
+            Number.parseFloat(pageStyle.paddingBottom || "0");
+          const availableHeight = contentBottom - gridElement.getBoundingClientRect().top;
+          const requiredHeight = gridElement.scrollHeight;
+          const nextScale = Math.min(1, availableHeight / requiredHeight);
+
+          if (Math.abs(nextScale - onePageScale) > 0.001) {
+            setOnePageScale(nextScale);
+            return;
+          }
+        }
+
+        setPaginationReady(true);
+        return;
+      }
+
       for (let pageIndex = 0; pageIndex < pageElements.length; pageIndex += 1) {
         const pageElement = pageElements[pageIndex];
         const pageBlocks = pages[pageIndex] ?? [];
@@ -753,6 +911,26 @@ export function ResumeRenderer({
           pageRect.top +
           pageElement.clientHeight -
           Number.parseFloat(pageStyle.paddingBottom || "0");
+
+        if (isCoverLetterTemplate && pages.length === 2) {
+          const gridElement = pageElement.querySelector<HTMLElement>(".resume-grid");
+          if (gridElement) {
+            const availableHeight =
+              contentBottom - gridElement.getBoundingClientRect().top;
+            const requiredHeight = gridElement.scrollHeight;
+            const nextScale = Math.min(1, availableHeight / requiredHeight);
+            const currentScale = coverPageScales[pageIndex] ?? 1;
+
+            if (Math.abs(nextScale - currentScale) > 0.001) {
+              setCoverPageScales((current) => ({
+                ...current,
+                [pageIndex]: nextScale,
+              }));
+              return;
+            }
+          }
+        }
+
         const overflowingBlock = blockElements.find(
           (blockElement) =>
             blockElement.getBoundingClientRect().bottom > contentBottom + 1,
@@ -795,7 +973,15 @@ export function ResumeRenderer({
     return () => {
       cancelled = true;
     };
-  }, [isPrintTemplate, pages, paginationKey]);
+  }, [
+    coverPageScales,
+    isCoverLetterTemplate,
+    isPrintTemplate,
+    isOnePageTemplate,
+    onePageScale,
+    pages,
+    paginationKey,
+  ]);
 
   const renderBlock = (block: ResumeBlock, ignoreBreak = false) => {
     const format = getBlockFormat(block.format);
@@ -876,8 +1062,28 @@ export function ResumeRenderer({
                   </div>
                 </div>
               ) : (
-                <div className="resume-grid">
+                <div
+                  className="resume-grid"
+                  style={
+                    isOnePageTemplate
+                      ? {
+                          transform: `scale(${onePageScale})`,
+                          transformOrigin: "top left",
+                        }
+                      : isCoverLetterTemplate && coverPageScales[pageIndex]
+                        ? {
+                            transform: `scale(${coverPageScales[pageIndex]})`,
+                            transformOrigin: "top left",
+                          }
+                      : undefined
+                  }
+                >
                   {pageBlocks.map((resumeBlock) => renderBlock(resumeBlock, true))}
+                </div>
+              )}
+              {isCoverLetterTemplate && (
+                <div className="resume-page-number" aria-hidden="true">
+                  {pageIndex + 1} / {pages.length}
                 </div>
               )}
             </div>
